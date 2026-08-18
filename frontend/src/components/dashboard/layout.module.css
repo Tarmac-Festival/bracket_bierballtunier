@@ -1,9 +1,25 @@
 .header {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   width: 100%;
   background-color: var(--mantine-color-body);
   border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+/* Festival stripe across the top of every dashboard page. */
+.stripe {
+  height: rem(6px);
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--tarmac-purple) 0%,
+    var(--tarmac-purple-light) 45%,
+    var(--tarmac-green) 100%
+  );
+}
+
+.titleBar {
+  padding-top: rem(18px);
+  padding-bottom: rem(6px);
 }
 
 .inner {
@@ -53,5 +69,15 @@
 .tournamentTitle {
   text-transform: uppercase;
   font-weight: 700;
-  letter-spacing: rem(0.5px);
+  letter-spacing: rem(1px);
+  font-size: rem(30px);
+  line-height: 1.1;
+  background: linear-gradient(90deg, var(--mantine-color-white) 30%, var(--tarmac-green) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+
+  @media (max-width: $mantine-breakpoint-xs) {
+    font-size: rem(22px);
+  }
 }

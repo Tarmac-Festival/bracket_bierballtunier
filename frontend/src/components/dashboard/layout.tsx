@@ -78,7 +78,7 @@ export function DashboardNotPublic() {
 }
 
 export function getTournamentHeadTitle(tournamentDataFull: Tournament) {
-  return tournamentDataFull !== null ? `Bracket | ${tournamentDataFull.name}` : 'Bracket';
+  return tournamentDataFull !== null ? tournamentDataFull.name : 'Tarmac Bierballturnier';
 }
 
 export function TournamentTitle({ tournamentDataFull }: { tournamentDataFull: Tournament }) {
@@ -90,6 +90,7 @@ export function TournamentTitle({ tournamentDataFull }: { tournamentDataFull: To
 }
 
 export function DoubleHeader({ tournamentData }: { tournamentData: Tournament }) {
+  const { t } = useTranslation();
   const navigate = useLocation();
   const endpoint = tournamentData.dashboard_endpoint || '';
   const pathName = navigate.pathname.replace('[id]', endpoint).replace(/\/+$/, '');
@@ -97,15 +98,15 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
   const mainLinks = [
     ...(tournamentData.dashboard_public
       ? [
-          { link: `/tournaments/${endpoint}/dashboard`, label: 'Matches' },
-          { link: `/tournaments/${endpoint}/dashboard/standings`, label: 'Standings' },
+          { link: `/tournaments/${endpoint}/dashboard`, label: t('dashboard_tab_matches') },
+          { link: `/tournaments/${endpoint}/dashboard/standings`, label: t('dashboard_tab_standings') },
         ]
       : []),
     ...(tournamentData.dashboard_public && tournamentData.rules
-      ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: 'Rules' }]
+      ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: t('dashboard_tab_rules') }]
       : []),
     ...(registrationIsOpen(tournamentData)
-      ? [{ link: `/tournaments/${endpoint}/dashboard/register`, label: 'Register' }]
+      ? [{ link: `/tournaments/${endpoint}/dashboard/register`, label: t('dashboard_tab_register') }]
       : []),
   ];
 
@@ -122,9 +123,10 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
 
   return (
     <header className={classes.header}>
-      <Container className={classes.inner}>
+      <div className={classes.stripe} />
+      <Container className={`${classes.inner} ${classes.titleBar}`}>
         <UnstyledButton component={PreloadLink} href={`/tournaments/${endpoint}/dashboard`}>
-          <Title size="lg" lineClamp={1} className={classes.tournamentTitle}>
+          <Title lineClamp={1} className={classes.tournamentTitle}>
             {tournamentData.name}
           </Title>
         </UnstyledButton>

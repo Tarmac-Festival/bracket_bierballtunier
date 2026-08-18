@@ -47,7 +47,14 @@ function ScheduleRow({
         : loseColor;
 
   return (
-    <Card shadow="sm" radius="md" withBorder mt="md" pt="0rem">
+    <Card
+      shadow="sm"
+      radius="md"
+      withBorder
+      mt="md"
+      pt="0rem"
+      style={{ borderLeft: '4px solid var(--tarmac-green)' }}
+    >
       <Card.Section withBorder>
         <Grid pt="0.75rem" pb="0.5rem">
           <Grid.Col mb="0rem" span={4}>
@@ -80,7 +87,7 @@ function ScheduleRow({
       <Stack pt="sm">
         <Grid>
           <Grid.Col span="auto" pb="0rem">
-            <Text fw={500}>
+            <Text fw={600} fz="lg">
               {formatMatchInput1(t, stageItemsLookup, matchesLookup, data.match)}
             </Text>
           </Grid.Col>
@@ -89,9 +96,10 @@ function ScheduleRow({
               style={{
                 backgroundColor: team1_color,
                 borderRadius: '0.5rem',
-                width: '2.5rem',
+                width: '3rem',
                 color: 'white',
                 fontWeight: 800,
+                fontSize: '1.35rem',
               }}
             >
               <Center>{data.match.stage_item_input1_score}</Center>
@@ -100,7 +108,7 @@ function ScheduleRow({
         </Grid>
         <Grid mb="0rem">
           <Grid.Col span="auto" pb="0rem">
-            <Text fw={500}>
+            <Text fw={600} fz="lg">
               {formatMatchInput2(t, stageItemsLookup, matchesLookup, data.match)}
             </Text>
           </Grid.Col>
@@ -109,9 +117,10 @@ function ScheduleRow({
               style={{
                 backgroundColor: team2_color,
                 borderRadius: '0.5rem',
-                width: '2.5rem',
+                width: '3rem',
                 color: 'white',
                 fontWeight: 800,
+                fontSize: '1.35rem',
               }}
             >
               <Center>{data.match.stage_item_input2_score}</Center>
@@ -151,8 +160,8 @@ export function Schedule({
 
       if (c < 1 || startTime !== formatTime(sortedMatches[c - 1].match.start_time)) {
         rows.push(
-          <Center mt="md" key={`time-${c}`}>
-            <Text size="xl" fw={800}>
+          <Center mt="xl" key={`time-${c}`}>
+            <Text size="xl" fw={800} tt="uppercase" c="tarmacGreen.4" style={{ letterSpacing: '2px' }}>
               {startTime}
             </Text>
           </Center>,
