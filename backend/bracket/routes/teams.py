@@ -47,6 +47,7 @@ from bracket.sql.teams import (
     get_team_count,
     get_teams_with_members,
     sql_delete_team,
+    sql_get_stage_item_input_count_of_team,
 )
 from bracket.sql.validation import check_foreign_keys_belong_to_tournament
 from bracket.utils.db import fetch_one_parsed
@@ -171,6 +172,14 @@ async def delete_team(
     __: Tournament = Depends(disallow_archived_tournament),
     team: FullTeamWithPlayers = Depends(team_with_players_dependency),
 ) -> SuccessResponse:
+    # The generic foreign key message doesn't explain what to do here, so check up front.
+    if await sql_get_stage_item_input_count_of_team(team.id) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This team is already assigned to a stage item, remove it from there "
+            "before deleting the team",
+        )
+
     with check_foreign_key_violation(
         {
             ForeignKey.stage_item_inputs_team_id_fkey,
@@ -209,13 +218,29 @@ async def merge_team(
             f"exceeds the maximum team size of {tournament.team_size_max}",
         )
 
+    # Merging removes the team, which is impossible once it takes part in a stage item.
+    if await sql_get_stage_item_input_count_of_team(team.id) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This team is already assigned to a stage item, remove it from there "
+            "before merging it into another team",
+        )
+
     async with database.transaction():
         for player_id in team.player_ids:
             await database.execute(
                 query=players_x_teams.insert(),
                 values={"team_id": body.target_team_id, "player_id": player_id},
             )
-        await sql_delete_team(tournament_id, team.id)
+
+        with check_foreign_key_violation(
+            {
+                ForeignKey.stage_item_inputs_team_id_fkey,
+                ForeignKey.matches_stage_item_input1_id_fkey,
+                ForeignKey.matches_stage_item_input2_id_fkey,
+            }
+        ):
+            await sql_delete_team(tournament_id, team.id)
 
     return SuccessResponse()
 
