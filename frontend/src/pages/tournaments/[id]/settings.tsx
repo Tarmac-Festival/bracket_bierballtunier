@@ -28,6 +28,7 @@ import { SWRResponse } from 'swr';
 import { assert_not_none } from '@components/utils/assert';
 import { DropzoneButton } from '@components/utils/file_upload';
 import { GenericSkeletonThreeRows } from '@components/utils/skeletons';
+import { teamSizeRangeIsValid } from '@components/utils/tournament';
 import { capitalize, getBaseURL, getTournamentIdFromRouter } from '@components/utils/util';
 import { Club, Tournament, TournamentResponse } from '@openapi';
 import NotFoundTitle from '@pages/404';
@@ -156,11 +157,9 @@ function GeneralTournamentForm({
       margin_minutes: (value) =>
         value != null && value > 0 ? null : t('margin_minutes_choose_title'),
       team_size_min: (value, values) =>
-        value != null && value > 0 && value <= values.team_size_max
-          ? null
-          : t('team_size_min_validation'),
+        teamSizeRangeIsValid(value, values.team_size_max) ? null : t('team_size_min_validation'),
       team_size_max: (value, values) =>
-        value != null && value >= values.team_size_min ? null : t('team_size_max_validation'),
+        teamSizeRangeIsValid(values.team_size_min, value) ? null : t('team_size_max_validation'),
     },
   });
 

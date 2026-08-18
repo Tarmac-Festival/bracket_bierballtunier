@@ -1,6 +1,15 @@
 import { Dayjs } from 'dayjs';
 import { createAxios, handleRequestError } from './adapter';
 
+// Mantine's NumberInput yields '' when the field is cleared, which the API rejects.
+function optionalNumber(value: number | string | null | undefined): number | null {
+  return value === '' || value == null ? null : Number(value);
+}
+
+function numberOrDefault(value: number | string | null | undefined, fallback: number): number {
+  return value === '' || value == null ? fallback : Number(value);
+}
+
 export async function createTournament(
   club_id: number,
   name: string,
@@ -14,9 +23,9 @@ export async function createTournament(
   rules?: string,
   registration_enabled?: boolean,
   registration_deadline?: Dayjs | null,
-  team_size_min?: number,
-  team_size_max?: number,
-  max_teams?: number | null,
+  team_size_min?: number | string | null,
+  team_size_max?: number | string | null,
+  max_teams?: number | string | null,
 ) {
   return createAxios()
     .post('tournaments', {
@@ -31,10 +40,10 @@ export async function createTournament(
       margin_minutes,
       rules,
       registration_enabled,
-      registration_deadline,
-      team_size_min,
-      team_size_max,
-      max_teams,
+      registration_deadline: registration_deadline ?? null,
+      team_size_min: numberOrDefault(team_size_min, 1),
+      team_size_max: numberOrDefault(team_size_max, 8),
+      max_teams: optionalNumber(max_teams),
     })
     .catch((response: any) => handleRequestError(response));
 }
@@ -64,9 +73,9 @@ export async function updateTournament(
   rules?: string | null,
   registration_enabled?: boolean,
   registration_deadline?: Dayjs | string | null,
-  team_size_min?: number,
-  team_size_max?: number,
-  max_teams?: number | null,
+  team_size_min?: number | string | null,
+  team_size_max?: number | string | null,
+  max_teams?: number | string | null,
 ) {
   return createAxios()
     .put(`tournaments/${tournament_id}`, {
@@ -80,10 +89,10 @@ export async function updateTournament(
       margin_minutes,
       rules,
       registration_enabled,
-      registration_deadline,
-      team_size_min,
-      team_size_max,
-      max_teams,
+      registration_deadline: registration_deadline ?? null,
+      team_size_min: numberOrDefault(team_size_min, 1),
+      team_size_max: numberOrDefault(team_size_max, 8),
+      max_teams: optionalNumber(max_teams),
     })
     .catch((response: any) => handleRequestError(response));
 }
