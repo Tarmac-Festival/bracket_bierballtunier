@@ -36,33 +36,50 @@ async def schedule_all_unscheduled_matches(
         stage_items = sorted(stage.stage_items, key=lambda x: x.name)
 
         stage_start_time = time_last_match_from_previous_stage
-        stage_position_in_schedule = position_last_match_from_previous_stage
+        position_in_schedule = position_last_match_from_previous_stage
 
-        for i, stage_item in enumerate(stage_items):
-            court = courts[min(i, len(courts) - 1)]
-            start_time = stage_start_time
-            position_in_schedule = stage_position_in_schedule
+        # All stage items of a stage share the courts, so the matches of a single group or
+        # bracket are spread over them as well instead of queueing up on the first court.
+        court_available_from = {court.id: stage_start_time for court in courts}
+
+        for stage_item in stage_items:
+            # Within a stage item a round can only start once the previous one is played:
+            # its matches decide who takes part, and teams play at most once per round.
+            round_can_start_from = stage_start_time
+
             for round_ in sorted(stage_item.rounds, key=lambda r: r.id):
+                next_round_can_start_from = round_can_start_from
+
                 for match in round_.matches:
+                    court_id = min(
+                        court_available_from,
+                        key=lambda id_: max(court_available_from[id_], round_can_start_from),  # noqa: B023
+                    )
+                    start_time = max(court_available_from[court_id], round_can_start_from)
+
                     if match.start_time is None and match.position_in_schedule is None:
                         await sql_reschedule_match_and_determine_duration_and_margin(
-                            court.id,
+                            court_id,
                             start_time,
                             position_in_schedule,
                             match,
                             tournament,
                         )
 
-                    start_time += timedelta(minutes=match.duration_minutes)
+                    end_time = start_time + timedelta(minutes=match.duration_minutes)
+                    court_available_from[court_id] = end_time
                     position_in_schedule += 1
 
-                    time_last_match_from_previous_stage = max(
-                        time_last_match_from_previous_stage, start_time
-                    )
+                    next_round_can_start_from = max(next_round_can_start_from, end_time)
 
+                    time_last_match_from_previous_stage = max(
+                        time_last_match_from_previous_stage, end_time
+                    )
                     position_last_match_from_previous_stage = max(
                         position_last_match_from_previous_stage, position_in_schedule
                     )
+
+                round_can_start_from = next_round_can_start_from
 
     await update_start_times_of_matches(tournament_id)
 
