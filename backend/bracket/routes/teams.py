@@ -192,9 +192,7 @@ async def delete_team(
     return SuccessResponse()
 
 
-@router.post(
-    "/tournaments/{tournament_id}/teams/{team_id}/merge", response_model=SuccessResponse
-)
+@router.post("/tournaments/{tournament_id}/teams/{team_id}/merge", response_model=SuccessResponse)
 async def merge_team(
     tournament_id: TournamentId,
     body: TeamMergeBody,
@@ -318,9 +316,7 @@ async def register_team(
     tournament: Tournament = Depends(disallow_archived_tournament),
 ) -> SingleTeamResponse:
     if not tournament.registration_enabled:
-        raise HTTPException(
-            status_code=403, detail="Registration is not open for this tournament"
-        )
+        raise HTTPException(status_code=403, detail="Registration is not open for this tournament")
 
     if (
         tournament.registration_deadline is not None

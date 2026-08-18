@@ -161,7 +161,13 @@ export function Schedule({
       if (c < 1 || startTime !== formatTime(sortedMatches[c - 1].match.start_time)) {
         rows.push(
           <Center mt="xl" key={`time-${c}`}>
-            <Text size="xl" fw={800} tt="uppercase" c="tarmacGreen.4" style={{ letterSpacing: '2px' }}>
+            <Text
+              size="xl"
+              fw={800}
+              tt="uppercase"
+              c="tarmacGreen.4"
+              style={{ letterSpacing: '2px' }}
+            >
               {startTime}
             </Text>
           </Center>,

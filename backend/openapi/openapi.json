@@ -2472,6 +2472,19 @@
         "title": "TeamBody",
         "type": "object"
       },
+      "TeamMergeBody": {
+        "properties": {
+          "target_team_id": {
+            "title": "Target Team Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "target_team_id"
+        ],
+        "title": "TeamMergeBody",
+        "type": "object"
+      },
       "TeamMultiBody": {
         "properties": {
           "active": {
@@ -2489,6 +2502,31 @@
           "active"
         ],
         "title": "TeamMultiBody",
+        "type": "object"
+      },
+      "TeamRegistrationBody": {
+        "properties": {
+          "name": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "player_names": {
+            "items": {
+              "maxLength": 30,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Player Names",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "player_names"
+        ],
+        "title": "TeamRegistrationBody",
         "type": "object"
       },
       "TeamsWithPlayersResponse": {
@@ -2593,6 +2631,18 @@
             "title": "Margin Minutes",
             "type": "integer"
           },
+          "max_teams": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Teams"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2600,6 +2650,45 @@
           "players_can_be_in_multiple_teams": {
             "title": "Players Can Be In Multiple Teams",
             "type": "boolean"
+          },
+          "registration_deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Deadline"
+          },
+          "registration_enabled": {
+            "default": false,
+            "title": "Registration Enabled",
+            "type": "boolean"
+          },
+          "registration_info": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Info"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
           },
           "start_time": {
             "format": "date-time",
@@ -2609,6 +2698,18 @@
           "status": {
             "$ref": "#/components/schemas/TournamentStatus",
             "default": "OPEN"
+          },
+          "team_size_max": {
+            "default": 8,
+            "minimum": 1.0,
+            "title": "Team Size Max",
+            "type": "integer"
+          },
+          "team_size_min": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Team Size Min",
+            "type": "integer"
           }
         },
         "required": [
@@ -2621,6 +2722,13 @@
           "dashboard_public",
           "dashboard_endpoint",
           "logo_path",
+          "rules",
+          "registration_enabled",
+          "registration_info",
+          "registration_deadline",
+          "team_size_min",
+          "team_size_max",
+          "max_teams",
           "players_can_be_in_multiple_teams",
           "auto_assign_courts",
           "status",
@@ -2662,6 +2770,18 @@
             "title": "Margin Minutes",
             "type": "integer"
           },
+          "max_teams": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Teams"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2670,10 +2790,57 @@
             "title": "Players Can Be In Multiple Teams",
             "type": "boolean"
           },
+          "registration_deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Deadline"
+          },
+          "registration_enabled": {
+            "default": false,
+            "title": "Registration Enabled",
+            "type": "boolean"
+          },
+          "registration_info": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Registration Info"
+          },
+          "rules": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rules"
+          },
           "start_time": {
             "format": "date-time",
             "title": "Start Time",
             "type": "string"
+          },
+          "team_size_max": {
+            "default": 8,
+            "minimum": 1.0,
+            "title": "Team Size Max",
+            "type": "integer"
+          },
+          "team_size_min": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Team Size Min",
+            "type": "integer"
           }
         },
         "required": [
@@ -2681,6 +2848,13 @@
           "name",
           "dashboard_public",
           "dashboard_endpoint",
+          "rules",
+          "registration_enabled",
+          "registration_info",
+          "registration_deadline",
+          "team_size_min",
+          "team_size_max",
+          "max_teams",
           "players_can_be_in_multiple_teams",
           "auto_assign_courts",
           "duration_minutes",
@@ -2751,6 +2925,18 @@
             "title": "Margin Minutes",
             "type": "integer"
           },
+          "max_teams": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Teams"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2759,10 +2945,57 @@
             "title": "Players Can Be In Multiple Teams",
             "type": "boolean"
           },
+          "registration_deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Deadline"
+          },
+          "registration_enabled": {
+            "default": false,
+            "title": "Registration Enabled",
+            "type": "boolean"
+          },
+          "registration_info": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Registration Info"
+          },
+          "rules": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rules"
+          },
           "start_time": {
             "format": "date-time",
             "title": "Start Time",
             "type": "string"
+          },
+          "team_size_max": {
+            "default": 8,
+            "minimum": 1.0,
+            "title": "Team Size Max",
+            "type": "integer"
+          },
+          "team_size_min": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Team Size Min",
+            "type": "integer"
           }
         },
         "required": [
@@ -2770,6 +3003,13 @@
           "name",
           "dashboard_public",
           "dashboard_endpoint",
+          "rules",
+          "registration_enabled",
+          "registration_info",
+          "registration_deadline",
+          "team_size_min",
+          "team_size_max",
+          "max_teams",
           "players_can_be_in_multiple_teams",
           "auto_assign_courts",
           "duration_minutes",
@@ -4736,6 +4976,58 @@
         ]
       }
     },
+    "/tournaments/{tournament_id}/register": {
+      "post": {
+        "operationId": "register_team_tournaments__tournament_id__register_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tournament_id",
+            "required": true,
+            "schema": {
+              "title": "Tournament Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamRegistrationBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleTeamResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register Team",
+        "tags": [
+          "Teams"
+        ]
+      }
+    },
     "/tournaments/{tournament_id}/rounds": {
       "post": {
         "operationId": "create_round_tournaments__tournament_id__rounds_post",
@@ -6027,6 +6319,72 @@
           }
         ],
         "summary": "Update Team Logo",
+        "tags": [
+          "Teams"
+        ]
+      }
+    },
+    "/tournaments/{tournament_id}/teams/{team_id}/merge": {
+      "post": {
+        "operationId": "merge_team_tournaments__tournament_id__teams__team_id__merge_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tournament_id",
+            "required": true,
+            "schema": {
+              "title": "Tournament Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "team_id",
+            "required": true,
+            "schema": {
+              "title": "Team Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMergeBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Merge Team",
         "tags": [
           "Teams"
         ]

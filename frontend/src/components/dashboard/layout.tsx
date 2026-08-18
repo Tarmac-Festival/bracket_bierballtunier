@@ -99,14 +99,22 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
     ...(tournamentData.dashboard_public
       ? [
           { link: `/tournaments/${endpoint}/dashboard`, label: t('dashboard_tab_matches') },
-          { link: `/tournaments/${endpoint}/dashboard/standings`, label: t('dashboard_tab_standings') },
+          {
+            link: `/tournaments/${endpoint}/dashboard/standings`,
+            label: t('dashboard_tab_standings'),
+          },
         ]
       : []),
     ...(tournamentData.dashboard_public && tournamentData.rules
       ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: t('dashboard_tab_rules') }]
       : []),
     ...(registrationIsOpen(tournamentData)
-      ? [{ link: `/tournaments/${endpoint}/dashboard/register`, label: t('dashboard_tab_register') }]
+      ? [
+          {
+            link: `/tournaments/${endpoint}/dashboard/register`,
+            label: t('dashboard_tab_register'),
+          },
+        ]
       : []),
   ];
 

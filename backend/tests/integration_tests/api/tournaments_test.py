@@ -42,6 +42,13 @@ async def test_tournaments_endpoint(
                 "duration_minutes": 10,
                 "margin_minutes": 5,
                 "status": "OPEN",
+                "rules": None,
+                "registration_enabled": False,
+                "registration_info": None,
+                "registration_deadline": None,
+                "team_size_min": 1,
+                "team_size_max": 8,
+                "max_teams": None,
             }
         ],
     }
@@ -68,6 +75,13 @@ async def test_tournament_endpoint(
             "duration_minutes": 10,
             "margin_minutes": 5,
             "status": "OPEN",
+            "rules": None,
+            "registration_enabled": False,
+            "registration_info": None,
+            "registration_deadline": None,
+            "team_size_min": 1,
+            "team_size_max": 8,
+            "max_teams": None,
         },
     }
 

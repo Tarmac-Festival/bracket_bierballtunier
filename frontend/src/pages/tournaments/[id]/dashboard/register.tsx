@@ -45,9 +45,7 @@ function RegistrationForm({
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
       player_names: (value: string[]) =>
-        value.every((name) => name.trim().length > 0)
-          ? null
-          : t('player_name_required_validation'),
+        value.every((name) => name.trim().length > 0) ? null : t('player_name_required_validation'),
     },
   });
 
