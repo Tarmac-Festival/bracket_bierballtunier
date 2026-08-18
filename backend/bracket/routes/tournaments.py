@@ -38,6 +38,7 @@ from bracket.sql.tournaments import (
     sql_delete_tournament,
     sql_get_tournament,
     sql_get_tournament_by_endpoint_name,
+    sql_get_tournament_dependency_counts,
     sql_get_tournaments,
     sql_update_tournament,
     sql_update_tournament_status,
@@ -117,6 +118,17 @@ async def update_tournament_by_id(
 async def delete_tournament(
     tournament_id: TournamentId, _: UserPublic = Depends(user_authenticated_for_tournament)
 ) -> SuccessResponse:
+    # Rankings are deleted first, but they are still referenced by stage items, so without
+    # this check a tournament that isn't empty yet fails with a foreign key violation
+    # instead of telling the user what to remove first.
+    counts = await sql_get_tournament_dependency_counts(tournament_id)
+    blockers = [f"{count} {name}" for name, count in counts.items() if count > 0]
+    if blockers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This tournament still has {', '.join(blockers)}. Delete those first.",
+        )
+
     for ranking in await get_all_rankings_in_tournament(tournament_id):
         await sql_delete_ranking(tournament_id, ranking.id)
 

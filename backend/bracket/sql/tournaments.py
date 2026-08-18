@@ -61,6 +61,23 @@ async def sql_get_tournaments(
     return [Tournament.model_validate(x) for x in result]
 
 
+async def sql_get_tournament_dependency_counts(tournament_id: TournamentId) -> dict[str, int]:
+    """
+    Count the records that block deleting a tournament, so the user can be told what to
+    remove first instead of running into a foreign key violation.
+    """
+    query = """
+        SELECT
+            (SELECT count(*) FROM stages WHERE tournament_id = :tournament_id) AS stages,
+            (SELECT count(*) FROM teams WHERE tournament_id = :tournament_id) AS teams,
+            (SELECT count(*) FROM players WHERE tournament_id = :tournament_id) AS players,
+            (SELECT count(*) FROM courts WHERE tournament_id = :tournament_id) AS courts
+        """
+    result = await database.fetch_one(query=query, values={"tournament_id": tournament_id})
+    assert result is not None
+    return {key: int(value) for key, value in dict(result).items()}
+
+
 async def sql_delete_tournament(tournament_id: TournamentId) -> None:
     query = """
         DELETE FROM tournaments
