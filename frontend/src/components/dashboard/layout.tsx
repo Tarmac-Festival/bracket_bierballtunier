@@ -124,7 +124,7 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
     <header className={classes.header}>
       <Container className={classes.inner}>
         <UnstyledButton component={PreloadLink} href={`/tournaments/${endpoint}/dashboard`}>
-          <Title size="lg" lineClamp={1}>
+          <Title size="lg" lineClamp={1} className={classes.tournamentTitle}>
             {tournamentData.name}
           </Title>
         </UnstyledButton>

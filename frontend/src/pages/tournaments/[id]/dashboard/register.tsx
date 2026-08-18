@@ -108,7 +108,7 @@ function RegistrationForm({
         </Button>
       ) : null}
 
-      <Button fullWidth mt="lg" color="green" type="submit">
+      <Button fullWidth mt="lg" type="submit">
         {t('register_button')}
       </Button>
     </form>
@@ -144,7 +144,7 @@ export default function DashboardRegisterPage() {
           ) : success != null ? (
             <Alert
               icon={<IconCheck size={16} />}
-              color="green"
+              color="tarmacGreen.4"
               radius="md"
               title={t('registration_success_title')}
             >

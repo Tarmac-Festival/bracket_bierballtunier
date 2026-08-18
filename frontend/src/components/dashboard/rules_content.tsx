@@ -136,7 +136,9 @@ export function RulesContent({ rules }: { rules: string }) {
         {sections.map((section) => (
           <Accordion.Item key={section.title} value={section.title}>
             <Accordion.Control>
-              <Text fw={600}>{section.title}</Text>
+              <Text fw={700} tt="uppercase" style={{ letterSpacing: '0.02em' }}>
+                {section.title}
+              </Text>
             </Accordion.Control>
             <Accordion.Panel>
               <Blocks blocks={section.blocks} />

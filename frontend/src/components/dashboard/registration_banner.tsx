@@ -17,7 +17,7 @@ export function RegistrationBanner({ tournament }: { tournament: Tournament }) {
   return (
     <Alert
       icon={<IconUserPlus size={20} />}
-      color="green"
+      color="tarmacGreen.4"
       radius="md"
       title={t('registration_banner_title')}
       mt="md"
@@ -41,7 +41,6 @@ export function RegistrationBanner({ tournament }: { tournament: Tournament }) {
         <Button
           component={PreloadLink}
           href={`/tournaments/${tournament.dashboard_endpoint}/dashboard/register`}
-          color="green"
           leftSection={<IconUserPlus size={18} />}
         >
           {t('register_button')}
