@@ -17,7 +17,8 @@ services:
       PG_DSN: postgresql://bracket_dev:bracket_dev@postgres:5432/bracket_dev
       SERVE_FRONTEND: true
       API_PREFIX: '/api'
-    image: ghcr.io/evroon/bracket
+    build: .
+    image: bracket-bierball-local
     networks:
       - bracket_lan
     ports:
