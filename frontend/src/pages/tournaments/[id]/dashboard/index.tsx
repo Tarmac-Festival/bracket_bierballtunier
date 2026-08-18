@@ -5,7 +5,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DashboardFooter } from '@components/dashboard/footer';
-import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import {
+  DashboardNotPublic,
+  DoubleHeader,
+  getTournamentHeadTitle,
+} from '@components/dashboard/layout';
 import { RegistrationBanner } from '@components/dashboard/registration_banner';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { Time, compareDateTime, formatTime } from '@components/utils/datetime';
@@ -204,6 +208,22 @@ export default function DashboardSchedulePage() {
   }
 
   setTitle(getTournamentHeadTitle(tournamentDataFull));
+
+  // Reachable via the registration link even when the dashboard itself is not public.
+  if (!tournamentDataFull.dashboard_public) {
+    return (
+      <>
+        <DoubleHeader tournamentData={tournamentDataFull} />
+        <Center>
+          <Group style={{ maxWidth: '48rem', width: '100%' }} px="1rem">
+            <RegistrationBanner tournament={tournamentDataFull} />
+            <DashboardNotPublic />
+          </Group>
+        </Center>
+        <DashboardFooter />
+      </>
+    );
+  }
 
   const stageItemsLookup = responseIsValid(swrStagesResponse)
     ? getStageItemLookup(swrStagesResponse)

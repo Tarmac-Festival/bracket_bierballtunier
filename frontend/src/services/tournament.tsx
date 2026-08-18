@@ -1,9 +1,15 @@
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { createAxios, handleRequestError } from './adapter';
 
 // Mantine's NumberInput yields '' when the field is cleared, which the API rejects.
 function optionalNumber(value: number | string | null | undefined): number | null {
   return value === '' || value == null ? null : Number(value);
+}
+
+// Mantine's date pickers yield a 'YYYY-MM-DD HH:mm:ss' string, while initial values
+// are Dayjs objects. dayjs() normalises both (and Date) to an ISO string for the API.
+function isoDate(value: Dayjs | Date | string | null | undefined): string | null {
+  return value === '' || value == null ? null : dayjs(value).toISOString();
 }
 
 function numberOrDefault(value: number | string | null | undefined, fallback: number): number {
@@ -17,12 +23,12 @@ export async function createTournament(
   dashboard_endpoint: string,
   players_can_be_in_multiple_teams: boolean,
   auto_assign_courts: boolean,
-  start_time: Dayjs,
+  start_time: Dayjs | Date | string,
   duration_minutes: number,
   margin_minutes: number,
   rules?: string,
   registration_enabled?: boolean,
-  registration_deadline?: Dayjs | null,
+  registration_deadline?: Dayjs | Date | string | null,
   team_size_min?: number | string | null,
   team_size_max?: number | string | null,
   max_teams?: number | string | null,
@@ -35,12 +41,12 @@ export async function createTournament(
       dashboard_endpoint,
       players_can_be_in_multiple_teams,
       auto_assign_courts,
-      start_time,
+      start_time: isoDate(start_time),
       duration_minutes,
       margin_minutes,
       rules,
       registration_enabled,
-      registration_deadline: registration_deadline ?? null,
+      registration_deadline: isoDate(registration_deadline),
       team_size_min: numberOrDefault(team_size_min, 1),
       team_size_max: numberOrDefault(team_size_max, 8),
       max_teams: optionalNumber(max_teams),
@@ -67,12 +73,12 @@ export async function updateTournament(
   dashboard_endpoint: string | null | undefined,
   players_can_be_in_multiple_teams: boolean,
   auto_assign_courts: boolean,
-  start_time: string,
+  start_time: Dayjs | Date | string,
   duration_minutes: number,
   margin_minutes: number,
   rules?: string | null,
   registration_enabled?: boolean,
-  registration_deadline?: Dayjs | string | null,
+  registration_deadline?: Dayjs | Date | string | null,
   team_size_min?: number | string | null,
   team_size_max?: number | string | null,
   max_teams?: number | string | null,
@@ -84,12 +90,12 @@ export async function updateTournament(
       dashboard_endpoint,
       players_can_be_in_multiple_teams,
       auto_assign_courts,
-      start_time,
+      start_time: isoDate(start_time),
       duration_minutes,
       margin_minutes,
       rules,
       registration_enabled,
-      registration_deadline: registration_deadline ?? null,
+      registration_deadline: isoDate(registration_deadline),
       team_size_min: numberOrDefault(team_size_min, 1),
       team_size_max: numberOrDefault(team_size_max, 8),
       max_teams: optionalNumber(max_teams),

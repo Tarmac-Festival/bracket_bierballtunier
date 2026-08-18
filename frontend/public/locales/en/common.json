@@ -73,6 +73,7 @@
     "customize_checkbox_label": "Customize",
     "dashboard_link_label": "Dashboard link",
     "dashboard_link_placeholder": "best_tournament",
+    "dashboard_not_public_message": "The organizer has not made the schedule and standings of this tournament public.",
     "dashboard_public_description": "Allow anyone to see the dashboard of rounds and matches",
     "dashboard_settings_title": "Dashboard Settings",
     "default_label": "Default",

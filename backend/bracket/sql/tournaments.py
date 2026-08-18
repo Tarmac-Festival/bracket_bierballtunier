@@ -22,11 +22,14 @@ async def sql_get_tournament(tournament_id: TournamentId) -> Tournament:
 
 
 async def sql_get_tournament_by_endpoint_name(endpoint_name: str) -> Tournament | None:
+    # A tournament is reachable by its public endpoint name when its dashboard is public,
+    # or when teams can register themselves (the registration page lives under the same
+    # endpoint, and must work without exposing the dashboard).
     query = """
         SELECT *
         FROM tournaments
         WHERE dashboard_endpoint = :endpoint_name
-        AND dashboard_public IS TRUE
+        AND (dashboard_public IS TRUE OR registration_enabled IS TRUE)
         """
     result = await database.fetch_one(query=query, values={"endpoint_name": endpoint_name})
     return Tournament.model_validate(result) if result is not None else None

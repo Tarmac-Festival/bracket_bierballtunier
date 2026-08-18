@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { SWRResponse } from 'swr';
 
 import { DashboardFooter } from '@components/dashboard/footer';
-import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import {
+  DashboardNotPublic,
+  DoubleHeader,
+  getTournamentHeadTitle,
+} from '@components/dashboard/layout';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { StandingsTableForStageItem } from '@components/tables/standings';
 import { TableSkeletonTwoColumns } from '@components/utils/skeletons';
@@ -74,6 +78,16 @@ export default function DashboardStandingsPage() {
   }
 
   setTitle(getTournamentHeadTitle(tournamentDataFull));
+
+  if (!tournamentDataFull.dashboard_public) {
+    return (
+      <>
+        <DoubleHeader tournamentData={tournamentDataFull} />
+        <DashboardNotPublic />
+        <DashboardFooter />
+      </>
+    );
+  }
 
   if (swrStagesResponse.isLoading) {
     return <TableSkeletonTwoColumns />;

@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Center,
   Container,
@@ -8,6 +9,8 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import QRCode from 'react-qr-code';
 import { useLocation } from 'react-router';
 
@@ -63,6 +66,17 @@ export function TournamentLogo({ tournamentDataFull }: { tournamentDataFull: Tou
   ) : null;
 }
 
+export function DashboardNotPublic() {
+  const { t } = useTranslation();
+  return (
+    <Container mt="1rem" px="sm">
+      <Alert icon={<IconAlertCircle size={16} />} color="gray" radius="md">
+        {t('dashboard_not_public_message')}
+      </Alert>
+    </Container>
+  );
+}
+
 export function getTournamentHeadTitle(tournamentDataFull: Tournament) {
   return tournamentDataFull !== null ? `Bracket | ${tournamentDataFull.name}` : 'Bracket';
 }
@@ -81,9 +95,13 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
   const pathName = navigate.pathname.replace('[id]', endpoint).replace(/\/+$/, '');
 
   const mainLinks = [
-    { link: `/tournaments/${endpoint}/dashboard`, label: 'Matches' },
-    { link: `/tournaments/${endpoint}/dashboard/standings`, label: 'Standings' },
-    ...(tournamentData.rules
+    ...(tournamentData.dashboard_public
+      ? [
+          { link: `/tournaments/${endpoint}/dashboard`, label: 'Matches' },
+          { link: `/tournaments/${endpoint}/dashboard/standings`, label: 'Standings' },
+        ]
+      : []),
+    ...(tournamentData.dashboard_public && tournamentData.rules
       ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: 'Rules' }]
       : []),
     ...(registrationIsOpen(tournamentData)

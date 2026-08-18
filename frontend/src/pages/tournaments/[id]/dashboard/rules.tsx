@@ -4,7 +4,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DashboardFooter } from '@components/dashboard/footer';
-import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import {
+  DashboardNotPublic,
+  DoubleHeader,
+  getTournamentHeadTitle,
+} from '@components/dashboard/layout';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { setTitle } from '@components/utils/util';
 import { getTournamentResponseByEndpointName } from '@services/dashboard';
@@ -19,6 +23,16 @@ export default function DashboardRulesPage() {
   }
 
   setTitle(getTournamentHeadTitle(tournamentDataFull));
+
+  if (!tournamentDataFull.dashboard_public) {
+    return (
+      <>
+        <DoubleHeader tournamentData={tournamentDataFull} />
+        <DashboardNotPublic />
+        <DashboardFooter />
+      </>
+    );
+  }
 
   return (
     <>
