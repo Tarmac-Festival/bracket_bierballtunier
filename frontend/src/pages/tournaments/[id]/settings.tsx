@@ -134,6 +134,13 @@ function GeneralTournamentForm({
       dashboard_public: tournament.dashboard_public,
       dashboard_endpoint: tournament.dashboard_endpoint,
       rules: tournament.rules || '',
+      registration_enabled: tournament.registration_enabled,
+      registration_deadline: tournament.registration_deadline
+        ? dayjs(tournament.registration_deadline)
+        : null,
+      team_size_min: tournament.team_size_min,
+      team_size_max: tournament.team_size_max,
+      max_teams: tournament.max_teams,
       players_can_be_in_multiple_teams: tournament.players_can_be_in_multiple_teams,
       auto_assign_courts: tournament.auto_assign_courts,
       duration_minutes: tournament.duration_minutes,
@@ -148,6 +155,12 @@ function GeneralTournamentForm({
         value != null && value > 0 ? null : t('duration_minutes_choose_title'),
       margin_minutes: (value) =>
         value != null && value > 0 ? null : t('margin_minutes_choose_title'),
+      team_size_min: (value, values) =>
+        value != null && value > 0 && value <= values.team_size_max
+          ? null
+          : t('team_size_min_validation'),
+      team_size_max: (value, values) =>
+        value != null && value >= values.team_size_min ? null : t('team_size_max_validation'),
     },
   });
 
@@ -167,6 +180,11 @@ function GeneralTournamentForm({
           values.duration_minutes,
           values.margin_minutes,
           values.rules,
+          values.registration_enabled,
+          values.registration_deadline ? values.registration_deadline.toISOString() : null,
+          values.team_size_min,
+          values.team_size_max,
+          values.max_teams,
         );
 
         await swrTournamentResponse.mutate();
@@ -239,6 +257,79 @@ function GeneralTournamentForm({
           autosize
           {...form.getInputProps('rules')}
         />
+      </Fieldset>
+      <Fieldset legend={t('registration_settings_legend')} mt="lg" radius="md">
+        <Checkbox
+          label={t('registration_enabled_description')}
+          {...form.getInputProps('registration_enabled', { type: 'checkbox' })}
+        />
+
+        <Text fz="sm" mt="lg">
+          {t('registration_deadline_label')}
+        </Text>
+        <DateTimePicker
+          clearable
+          placeholder={t('registration_deadline_placeholder')}
+          rightSection={<IconCalendar size="1.1rem" stroke={1.5} />}
+          {...form.getInputProps('registration_deadline')}
+        />
+
+        <Grid>
+          <Grid.Col span={{ sm: 4 }}>
+            <NumberInput
+              label={t('team_size_min_label')}
+              min={1}
+              mt="lg"
+              {...form.getInputProps('team_size_min')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 4 }}>
+            <NumberInput
+              label={t('team_size_max_label')}
+              min={1}
+              mt="lg"
+              {...form.getInputProps('team_size_max')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 4 }}>
+            <NumberInput
+              label={t('max_teams_label')}
+              placeholder={t('max_teams_placeholder')}
+              min={1}
+              mt="lg"
+              {...form.getInputProps('max_teams')}
+            />
+          </Grid.Col>
+        </Grid>
+
+        {form.values.registration_enabled ? (
+          <Grid mt="lg">
+            <Grid.Col span={{ sm: 9 }}>
+              <TextInput
+                readOnly
+                label={t('registration_link_label')}
+                value={`${getBaseURL()}/tournaments/${tournament.dashboard_endpoint}/dashboard/register`}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 3 }}>
+              <CopyButton
+                value={`${getBaseURL()}/tournaments/${tournament.dashboard_endpoint}/dashboard/register`}
+              >
+                {({ copied, copy }) => (
+                  <Button
+                    mt="1.55rem"
+                    leftSection={<IconCopy size="1.1rem" stroke={1.5} />}
+                    fullWidth
+                    color={copied ? 'teal' : 'indigo'}
+                    onClick={copy}
+                  >
+                    {copied ? t('copied_url_button') : t('copy_url_button')}
+                  </Button>
+                )}
+              </CopyButton>
+            </Grid.Col>
+          </Grid>
+        ) : null}
       </Fieldset>
       <Fieldset legend={t('dashboard_settings_title')} mt="lg" radius="md">
         <Text fz="sm">{t('dashboard_link_label')}</Text>

@@ -85,6 +85,9 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
     ...(tournamentData.rules
       ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: 'Rules' }]
       : []),
+    ...(tournamentData.registration_enabled
+      ? [{ link: `/tournaments/${endpoint}/dashboard/register`, label: 'Register' }]
+      : []),
   ];
 
   const mainItems = mainLinks.map((item) => (

@@ -1,23 +1,27 @@
 import csv
 import os
+from decimal import Decimal
 from uuid import uuid4
 
 import aiofiles
 import aiofiles.os
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from heliclockter import datetime_utc
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.ranking.statistics import START_ELO
 from bracket.logic.subscriptions import check_requirement
 from bracket.logic.teams import get_team_logo_path
-from bracket.models.db.player import PlayerBody
+from bracket.models.db.player import PlayerBody, PlayerToInsert
 from bracket.models.db.team import (
     FullTeamWithPlayers,
     Team,
     TeamBody,
     TeamInsertable,
+    TeamMergeBody,
     TeamMultiBody,
+    TeamRegistrationBody,
 )
 from bracket.models.db.tournament import Tournament
 from bracket.models.db.user import UserPublic
@@ -36,7 +40,7 @@ from bracket.routes.util import (
     team_dependency,
     team_with_players_dependency,
 )
-from bracket.schema import players_x_teams, teams
+from bracket.schema import players, players_x_teams, teams
 from bracket.sql.players import get_all_players_in_tournament, insert_player
 from bracket.sql.teams import (
     get_team_by_id,
@@ -179,6 +183,43 @@ async def delete_team(
     return SuccessResponse()
 
 
+@router.post(
+    "/tournaments/{tournament_id}/teams/{team_id}/merge", response_model=SuccessResponse
+)
+async def merge_team(
+    tournament_id: TournamentId,
+    body: TeamMergeBody,
+    _: UserPublic = Depends(user_authenticated_for_tournament),
+    tournament: Tournament = Depends(disallow_archived_tournament),
+    team: FullTeamWithPlayers = Depends(team_with_players_dependency),
+) -> SuccessResponse:
+    if body.target_team_id == team.id:
+        raise HTTPException(status_code=400, detail="Can't merge a team into itself")
+
+    target_teams = await get_teams_with_members(tournament_id, team_id=body.target_team_id)
+    if len(target_teams) < 1:
+        raise HTTPException(status_code=404, detail="Could not find the target team")
+    [target_team] = target_teams
+
+    combined_size = len(team.players) + len(target_team.players)
+    if combined_size > tournament.team_size_max:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Merging would result in a team of {combined_size} members, which "
+            f"exceeds the maximum team size of {tournament.team_size_max}",
+        )
+
+    async with database.transaction():
+        for player_id in team.player_ids:
+            await database.execute(
+                query=players_x_teams.insert(),
+                values={"team_id": body.target_team_id, "player_id": player_id},
+            )
+        await sql_delete_team(tournament_id, team.id)
+
+    return SuccessResponse()
+
+
 @router.post("/tournaments/{tournament_id}/teams", response_model=SingleTeamResponse)
 async def create_team(
     team_to_insert: TeamBody,
@@ -243,3 +284,61 @@ async def create_multiple_teams(
                 await insert_player(player_body, tournament_id)
 
     return SuccessResponse()
+
+
+@router.post("/tournaments/{tournament_id}/register", response_model=SingleTeamResponse)
+async def register_team(
+    body: TeamRegistrationBody,
+    tournament_id: TournamentId,
+    tournament: Tournament = Depends(disallow_archived_tournament),
+) -> SingleTeamResponse:
+    if not tournament.registration_enabled:
+        raise HTTPException(
+            status_code=403, detail="Registration is not open for this tournament"
+        )
+
+    if (
+        tournament.registration_deadline is not None
+        and datetime_utc.now() > tournament.registration_deadline
+    ):
+        raise HTTPException(status_code=403, detail="The registration deadline has passed")
+
+    team_size = len(body.player_names)
+    if not (tournament.team_size_min <= team_size <= tournament.team_size_max):
+        raise HTTPException(
+            status_code=400,
+            detail=f"A team must have between {tournament.team_size_min} and "
+            f"{tournament.team_size_max} members",
+        )
+
+    async with database.transaction():
+        team_id = await database.execute(
+            query=teams.insert(),
+            values=TeamInsertable(
+                name=body.name,
+                active=True,
+                created=datetime_utc.now(),
+                tournament_id=tournament_id,
+            ).model_dump(),
+        )
+
+        for player_name in body.player_names:
+            player_id = await database.execute(
+                query=players.insert(),
+                values=PlayerToInsert(
+                    name=player_name,
+                    active=True,
+                    created=datetime_utc.now(),
+                    tournament_id=tournament_id,
+                    elo_score=START_ELO,
+                    swiss_score=Decimal("0.0"),
+                ).model_dump(),
+            )
+            await database.execute(
+                query=players_x_teams.insert(),
+                values={"team_id": team_id, "player_id": player_id},
+            )
+
+    team_result = await get_team_by_id(team_id, tournament_id)
+    assert team_result is not None
+    return SingleTeamResponse(data=team_result)

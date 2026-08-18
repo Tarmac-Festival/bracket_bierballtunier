@@ -1399,6 +1399,30 @@ export type TeamMultiBody = {
 };
 
 /**
+ * TeamRegistrationBody
+ */
+export type TeamRegistrationBody = {
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Player Names
+   */
+  player_names: Array<string>;
+};
+
+/**
+ * TeamMergeBody
+ */
+export type TeamMergeBody = {
+  /**
+   * Target Team Id
+   */
+  target_team_id: number;
+};
+
+/**
  * TeamsWithPlayersResponse
  */
 export type TeamsWithPlayersResponse = {
@@ -1471,6 +1495,10 @@ export type Tournament = {
    */
   margin_minutes: number;
   /**
+   * Max Teams
+   */
+  max_teams: number | null;
+  /**
    * Name
    */
   name: string;
@@ -1478,6 +1506,14 @@ export type Tournament = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Registration Deadline
+   */
+  registration_deadline: string | null;
+  /**
+   * Registration Enabled
+   */
+  registration_enabled: boolean;
   /**
    * Rules
    */
@@ -1487,6 +1523,14 @@ export type Tournament = {
    */
   start_time: string;
   status: TournamentStatus;
+  /**
+   * Team Size Max
+   */
+  team_size_max: number;
+  /**
+   * Team Size Min
+   */
+  team_size_min: number;
 };
 
 /**
@@ -1518,6 +1562,10 @@ export type TournamentBody = {
    */
   margin_minutes: number;
   /**
+   * Max Teams
+   */
+  max_teams?: number | null;
+  /**
    * Name
    */
   name: string;
@@ -1526,6 +1574,14 @@ export type TournamentBody = {
    */
   players_can_be_in_multiple_teams: boolean;
   /**
+   * Registration Deadline
+   */
+  registration_deadline?: string | null;
+  /**
+   * Registration Enabled
+   */
+  registration_enabled?: boolean;
+  /**
    * Rules
    */
   rules?: unknown | string;
@@ -1533,6 +1589,14 @@ export type TournamentBody = {
    * Start Time
    */
   start_time: string;
+  /**
+   * Team Size Max
+   */
+  team_size_max?: number;
+  /**
+   * Team Size Min
+   */
+  team_size_min?: number;
 };
 
 /**
@@ -1579,6 +1643,10 @@ export type TournamentUpdateBody = {
    */
   margin_minutes: number;
   /**
+   * Max Teams
+   */
+  max_teams?: number | null;
+  /**
    * Name
    */
   name: string;
@@ -1587,6 +1655,14 @@ export type TournamentUpdateBody = {
    */
   players_can_be_in_multiple_teams: boolean;
   /**
+   * Registration Deadline
+   */
+  registration_deadline?: string | null;
+  /**
+   * Registration Enabled
+   */
+  registration_enabled?: boolean;
+  /**
    * Rules
    */
   rules?: unknown | string;
@@ -1594,6 +1670,14 @@ export type TournamentUpdateBody = {
    * Start Time
    */
   start_time: string;
+  /**
+   * Team Size Max
+   */
+  team_size_max?: number;
+  /**
+   * Team Size Min
+   */
+  team_size_min?: number;
 };
 
 /**

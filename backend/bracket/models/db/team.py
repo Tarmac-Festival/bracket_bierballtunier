@@ -70,3 +70,12 @@ class TeamBody(BaseModelORM):
 class TeamMultiBody(BaseModelORM):
     names: str = Field(..., min_length=1)
     active: bool
+
+
+class TeamRegistrationBody(BaseModelORM):
+    name: Annotated[str, StringConstraints(min_length=1, max_length=30)]
+    player_names: list[Annotated[str, StringConstraints(min_length=1, max_length=30)]]
+
+
+class TeamMergeBody(BaseModelORM):
+    target_team_id: TeamId

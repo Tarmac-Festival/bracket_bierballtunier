@@ -25,6 +25,11 @@ class TournamentInsertable(BaseModelORM):
     dashboard_endpoint: str | None = None
     logo_path: str | None = None
     rules: str | None = None
+    registration_enabled: bool = False
+    registration_deadline: datetime_utc | None = None
+    team_size_min: int = Field(1, ge=1)
+    team_size_max: int = Field(8, ge=1)
+    max_teams: int | None = Field(None, ge=1)
     players_can_be_in_multiple_teams: bool
     auto_assign_courts: bool
     status: TournamentStatus = TournamentStatus.OPEN
@@ -40,6 +45,11 @@ class TournamentUpdateBody(BaseModelORM):
     dashboard_public: bool
     dashboard_endpoint: EmptyStrToNone | str = None
     rules: EmptyStrToNone | str = None
+    registration_enabled: bool = False
+    registration_deadline: datetime_utc | None = None
+    team_size_min: int = Field(1, ge=1)
+    team_size_max: int = Field(8, ge=1)
+    max_teams: int | None = Field(None, ge=1)
     players_can_be_in_multiple_teams: bool
     auto_assign_courts: bool
     duration_minutes: int = Field(..., ge=1)
