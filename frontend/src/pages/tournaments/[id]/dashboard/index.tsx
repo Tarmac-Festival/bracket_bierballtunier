@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DashboardFooter } from '@components/dashboard/footer';
 import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import { RegistrationBanner } from '@components/dashboard/registration_banner';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { Time, compareDateTime, formatTime } from '@components/utils/datetime';
 import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
@@ -218,6 +219,7 @@ export default function DashboardSchedulePage() {
       <DoubleHeader tournamentData={tournamentDataFull} />
       <Center>
         <Group style={{ maxWidth: '48rem', width: '100%' }} px="1rem">
+          <RegistrationBanner tournament={tournamentDataFull} />
           <Schedule t={t} matchesLookup={matchesLookup} stageItemsLookup={stageItemsLookup} />
         </Group>
       </Center>

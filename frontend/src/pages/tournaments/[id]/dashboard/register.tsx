@@ -11,12 +11,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconCheck, IconPlus, IconTrash } from '@tabler/icons-react';
-import dayjs from 'dayjs';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DashboardFooter } from '@components/dashboard/footer';
 import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import { registrationIsOpen } from '@components/utils/tournament';
 import { setTitle } from '@components/utils/util';
 import { Tournament } from '@openapi';
 import { requestSucceeded } from '@services/adapter';
@@ -128,10 +128,7 @@ export default function DashboardRegisterPage() {
   const tournament: Tournament = tournamentDataFull;
   setTitle(getTournamentHeadTitle(tournament));
 
-  const deadlinePassed =
-    tournament.registration_deadline != null &&
-    dayjs().isAfter(dayjs(tournament.registration_deadline));
-  const registrationOpen = tournament.registration_enabled && !deadlinePassed;
+  const registrationOpen = registrationIsOpen(tournament);
 
   return (
     <>

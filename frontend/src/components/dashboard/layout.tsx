@@ -12,6 +12,7 @@ import QRCode from 'react-qr-code';
 import { useLocation } from 'react-router';
 
 import PreloadLink from '@components/utils/link';
+import { registrationIsOpen } from '@components/utils/tournament';
 import { getBaseURL } from '@components/utils/util';
 import { Tournament } from '@openapi';
 import { getBaseApiUrl } from '@services/adapter';
@@ -85,7 +86,7 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
     ...(tournamentData.rules
       ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: 'Rules' }]
       : []),
-    ...(tournamentData.registration_enabled
+    ...(registrationIsOpen(tournamentData)
       ? [{ link: `/tournaments/${endpoint}/dashboard/register`, label: 'Register' }]
       : []),
   ];
