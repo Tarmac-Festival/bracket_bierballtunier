@@ -251,8 +251,9 @@ function GeneralTournamentForm({
       <Fieldset legend={t('tournament_rules_legend')} mt="lg" radius="md">
         <Textarea
           label={t('tournament_rules_label')}
+          description={t('tournament_rules_format_description')}
           placeholder={t('tournament_rules_placeholder')}
-          minRows={4}
+          minRows={8}
           autosize
           {...form.getInputProps('rules')}
         />

@@ -283,6 +283,7 @@
     "tournament_name_input_placeholder": "Best Tournament Ever",
     "tournament_not_started_description": "Please wait for the tournament to start.",
     "tournament_not_started_title": "Tournament has not started yet",
+    "tournament_rules_format_description": "Start a line with ## for a collapsible section, ### for a subheading, * for a bullet and 1. for a numbered list.",
     "tournament_rules_label": "Rules",
     "tournament_rules_legend": "Rules",
     "tournament_rules_placeholder": "Describe the rules of your tournament here. They will be shown to visitors on the public dashboard.",

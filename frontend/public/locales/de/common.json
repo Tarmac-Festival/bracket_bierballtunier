@@ -283,6 +283,7 @@
     "tournament_name_input_placeholder": "Bestes Turnier aller Zeiten",
     "tournament_not_started_description": "Bitte warten Sie, bis das Turnier beginnt.",
     "tournament_not_started_title": "Das Turnier hat noch nicht begonnen.",
+    "tournament_rules_format_description": "Zeile mit ## beginnen für einen aufklappbaren Abschnitt, ### für eine Zwischenüberschrift, * für einen Aufzählungspunkt und 1. für eine nummerierte Liste.",
     "tournament_rules_label": "Regelwerk",
     "tournament_rules_legend": "Regelwerk",
     "tournament_rules_placeholder": "Beschreibe hier die Regeln eures Turniers. Sie werden Besuchern auf dem öffentlichen Dashboard angezeigt.",
