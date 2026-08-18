@@ -137,6 +137,8 @@ function GeneralTournamentForm({
       rules: tournament.rules || '',
       registration_enabled: tournament.registration_enabled,
       registration_info: tournament.registration_info || '',
+      registration_password: '',
+      remove_registration_password: false,
       registration_deadline: tournament.registration_deadline
         ? dayjs(tournament.registration_deadline)
         : null,
@@ -182,6 +184,8 @@ function GeneralTournamentForm({
           values.rules,
           values.registration_enabled,
           values.registration_info,
+          values.registration_password,
+          values.remove_registration_password,
           values.registration_deadline,
           values.team_size_min,
           values.team_size_max,
@@ -265,6 +269,31 @@ function GeneralTournamentForm({
           label={t('registration_enabled_description')}
           {...form.getInputProps('registration_enabled', { type: 'checkbox' })}
         />
+
+        <TextInput
+          label={t('registration_password_label')}
+          description={
+            tournament.registration_password_required
+              ? t('registration_password_set_description')
+              : t('registration_password_description')
+          }
+          placeholder={
+            tournament.registration_password_required
+              ? t('registration_password_set_placeholder')
+              : t('registration_password_placeholder')
+          }
+          mt="lg"
+          disabled={form.values.remove_registration_password}
+          {...form.getInputProps('registration_password')}
+        />
+
+        {tournament.registration_password_required ? (
+          <Checkbox
+            mt="sm"
+            label={t('registration_password_remove_label')}
+            {...form.getInputProps('remove_registration_password', { type: 'checkbox' })}
+          />
+        ) : null}
 
         <Textarea
           label={t('registration_info_label')}

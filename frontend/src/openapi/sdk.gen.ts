@@ -148,6 +148,9 @@ import type {
   ScheduleMatchesTournamentsTournamentIdScheduleMatchesPostData,
   ScheduleMatchesTournamentsTournamentIdScheduleMatchesPostErrors,
   ScheduleMatchesTournamentsTournamentIdScheduleMatchesPostResponses,
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostData,
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors,
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses,
   StartNextRoundTournamentsTournamentIdStageItemsStageItemIdStartNextRoundPostData,
   StartNextRoundTournamentsTournamentIdStageItemsStageItemIdStartNextRoundPostErrors,
   StartNextRoundTournamentsTournamentIdStageItemsStageItemIdStartNextRoundPostResponses,
@@ -1533,6 +1536,36 @@ export const mergeTeamTournamentsTournamentIdTeamsTeamIdMergePost = <
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/tournaments/{tournament_id}/teams/{team_id}/merge',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Split Team
+ *
+ * Distributes the members of a team over other teams and removes the emptied team, so a
+ * team that is short of players can be dissolved into the remaining ones.
+ */
+export const splitTeamTournamentsTournamentIdTeamsTeamIdSplitPost = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostData, ThrowOnError>,
+): RequestResult<
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses,
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses,
+    SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tournaments/{tournament_id}/teams/{team_id}/split',
     ...options,
     headers: {
       'Content-Type': 'application/json',

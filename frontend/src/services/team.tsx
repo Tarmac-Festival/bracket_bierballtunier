@@ -27,19 +27,43 @@ export async function deleteTeam(tournament_id: number, team_id: number) {
     .catch((response: any) => handleRequestError(response));
 }
 
-export async function registerTeam(tournament_id: number, name: string, player_names: string[]) {
+export async function registerTeam(
+  tournament_id: number,
+  name: string,
+  player_names: string[],
+  password?: string,
+) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/register`, {
       name,
       player_names,
+      password: password || null,
     }),
   );
 }
 
-export async function mergeTeam(tournament_id: number, team_id: number, target_team_id: number) {
+export async function mergeTeam(
+  tournament_id: number,
+  team_id: number,
+  target_team_id: number,
+  target_team_name?: string | null,
+) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/teams/${team_id}/merge`, {
       target_team_id,
+      target_team_name: target_team_name || null,
+    }),
+  );
+}
+
+export async function splitTeam(
+  tournament_id: number,
+  team_id: number,
+  assignments: { [player_id: string]: number },
+) {
+  return awaitRequestAndHandleError(async (axios) =>
+    axios.post(`tournaments/${tournament_id}/teams/${team_id}/split`, {
+      assignments,
     }),
   );
 }

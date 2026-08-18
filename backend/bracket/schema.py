@@ -28,6 +28,7 @@ tournaments = Table(
     Column("rules", Text, nullable=True),
     Column("registration_enabled", Boolean, nullable=False, server_default="f"),
     Column("registration_info", Text, nullable=True),
+    Column("registration_password", String, nullable=True),
     Column("registration_deadline", DateTimeTZ, nullable=True),
     Column("team_size_min", Integer, nullable=False, server_default="1"),
     Column("team_size_max", Integer, nullable=False, server_default="8"),

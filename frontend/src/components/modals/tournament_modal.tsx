@@ -56,6 +56,7 @@ function GeneralTournamentForm({
       rules: '',
       registration_enabled: false,
       registration_info: '',
+      registration_password: '',
       registration_deadline: null,
       team_size_min: 1,
       team_size_max: 8,
@@ -97,6 +98,8 @@ function GeneralTournamentForm({
           values.rules,
           values.registration_enabled,
           values.registration_info,
+          values.registration_password,
+          false,
           values.registration_deadline,
           values.team_size_min,
           values.team_size_max,
@@ -193,6 +196,12 @@ function GeneralTournamentForm({
             minRows={3}
             autosize
             {...form.getInputProps('registration_info')}
+          />
+          <TextInput
+            label={t('registration_password_label')}
+            placeholder={t('registration_password_placeholder')}
+            mt="md"
+            {...form.getInputProps('registration_password')}
           />
           <DateTimePicker
             clearable

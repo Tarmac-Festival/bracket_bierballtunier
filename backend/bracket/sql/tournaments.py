@@ -99,6 +99,12 @@ async def sql_update_tournament(
             rules = :rules,
             registration_enabled = :registration_enabled,
             registration_info = :registration_info,
+            registration_password = CASE
+                WHEN CAST(:remove_registration_password AS BOOLEAN) THEN NULL
+                WHEN CAST(:registration_password AS TEXT) IS NOT NULL
+                    THEN CAST(:registration_password AS TEXT)
+                ELSE registration_password
+            END,
             registration_deadline = :registration_deadline,
             team_size_min = :team_size_min,
             team_size_max = :team_size_max,
@@ -144,6 +150,7 @@ async def sql_create_tournament(tournament: TournamentBody) -> TournamentId:
             rules,
             registration_enabled,
             registration_info,
+            registration_password,
             registration_deadline,
             team_size_min,
             team_size_max,
@@ -163,6 +170,7 @@ async def sql_create_tournament(tournament: TournamentBody) -> TournamentId:
             :rules,
             :registration_enabled,
             :registration_info,
+            :registration_password,
             :registration_deadline,
             :team_size_min,
             :team_size_max,
@@ -174,5 +182,8 @@ async def sql_create_tournament(tournament: TournamentBody) -> TournamentId:
         )
         RETURNING id
         """
-    new_id = await database.fetch_val(query=query, values=tournament.model_dump())
+    # `remove_registration_password` only means something when updating.
+    new_id = await database.fetch_val(
+        query=query, values=tournament.model_dump(exclude={"remove_registration_password"})
+    )
     return TournamentId(new_id)

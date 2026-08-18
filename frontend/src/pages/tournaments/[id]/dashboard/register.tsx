@@ -5,6 +5,7 @@ import {
   Container,
   Group,
   Paper,
+  PasswordInput,
   Stack,
   Text,
   TextInput,
@@ -29,21 +30,26 @@ function RegistrationForm({
   tournamentId,
   minSize,
   maxSize,
+  passwordRequired,
   onSuccess,
 }: {
   tournamentId: number;
   minSize: number;
   maxSize: number;
+  passwordRequired: boolean;
   onSuccess: (name: string) => void;
 }) {
   const { t } = useTranslation();
   const form = useForm({
     initialValues: {
       team_name: '',
+      password: '',
       player_names: Array.from({ length: minSize }, () => ''),
     },
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
+      password: (value) =>
+        !passwordRequired || value.length > 0 ? null : t('registration_password_validation'),
       player_names: (value: string[]) =>
         value.every((name) => name.trim().length > 0) ? null : t('player_name_required_validation'),
     },
@@ -64,7 +70,12 @@ function RegistrationForm({
   return (
     <form
       onSubmit={form.onSubmit(async (values) => {
-        const result = await registerTeam(tournamentId, values.team_name, values.player_names);
+        const result = await registerTeam(
+          tournamentId,
+          values.team_name,
+          values.player_names,
+          values.password,
+        );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
         }
@@ -106,6 +117,16 @@ function RegistrationForm({
         <Button variant="light" mt="sm" leftSection={<IconPlus size={16} />} onClick={addPlayer}>
           {t('add_player_button')}
         </Button>
+      ) : null}
+
+      {passwordRequired ? (
+        <PasswordInput
+          withAsterisk
+          label={t('registration_password_label')}
+          description={t('registration_password_hint')}
+          mt="lg"
+          {...form.getInputProps('password')}
+        />
       ) : null}
 
       <Button fullWidth mt="lg" type="submit">
@@ -161,6 +182,7 @@ export default function DashboardRegisterPage() {
               tournamentId={tournament.id}
               minSize={tournament.team_size_min}
               maxSize={tournament.team_size_max}
+              passwordRequired={tournament.registration_password_required}
               onSuccess={setSuccess}
             />
           )}

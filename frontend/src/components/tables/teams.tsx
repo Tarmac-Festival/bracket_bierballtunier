@@ -5,6 +5,7 @@ import { SWRResponse } from 'swr';
 import DeleteButton from '@components/buttons/delete';
 import PlayerList from '@components/info/player_list';
 import TeamMergeModal from '@components/modals/team_merge_modal';
+import TeamSplitModal from '@components/modals/team_split_modal';
 import TeamUpdateModal from '@components/modals/team_update_modal';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { DateTime } from '@components/utils/datetime';
@@ -62,6 +63,12 @@ export default function TeamsTable({
             swrTeamsResponse={swrTeamsResponse}
           />
           <TeamMergeModal
+            tournament_id={tournamentData.id}
+            team={team}
+            otherTeams={teams.filter((t2) => t2.id !== team.id)}
+            swrTeamsResponse={swrTeamsResponse}
+          />
+          <TeamSplitModal
             tournament_id={tournamentData.id}
             team={team}
             otherTeams={teams.filter((t2) => t2.id !== team.id)}

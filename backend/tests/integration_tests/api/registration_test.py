@@ -5,6 +5,7 @@ import pytest
 from heliclockter import datetime_utc
 
 from bracket.database import database
+from bracket.logic.rate_limit import registration_rate_limiter
 from bracket.models.db.tournament import Tournament
 from bracket.schema import (
     matches,
@@ -24,6 +25,15 @@ from tests.integration_tests.models import AuthContext
 from tests.integration_tests.sql import assert_row_count_and_clear, inserted_tournament
 
 
+@pytest.fixture(autouse=True)
+def reset_registration_rate_limit() -> None:
+    """
+    All requests come from the same address here, so without this the tests would start
+    running into the rate limit meant for the public registration form.
+    """
+    registration_rate_limiter.reset()
+
+
 @asynccontextmanager
 async def tournament_with_registration(
     auth_context: AuthContext,
@@ -32,6 +42,7 @@ async def tournament_with_registration(
     deadline: datetime_utc | None = None,
     team_size_min: int = 1,
     team_size_max: int = 4,
+    password: str | None = None,
 ) -> AsyncIterator[Tournament]:
     """
     Every test gets its own tournament, so that changing the registration settings can't
@@ -44,6 +55,7 @@ async def tournament_with_registration(
                 "dashboard_endpoint": "registration-test",
                 "registration_enabled": enabled,
                 "registration_deadline": deadline,
+                "registration_password": password,
                 "team_size_min": team_size_min,
                 "team_size_max": team_size_max,
             }
@@ -52,11 +64,13 @@ async def tournament_with_registration(
         yield tournament
 
 
-async def register_team(tournament: Tournament, name: str, player_names: list[str]) -> dict:
+async def register_team(
+    tournament: Tournament, name: str, player_names: list[str], password: str | None = None
+) -> dict:
     return await send_request(
         HTTPMethod.POST,
         f"tournaments/{tournament.id}/register",
-        json={"name": name, "player_names": player_names},
+        json={"name": name, "player_names": player_names, "password": password},
     )
 
 
@@ -209,6 +223,131 @@ async def test_creating_a_stage_item_restores_a_missing_default_ranking(
             await database.execute(
                 query=table.delete().where(table.c.tournament_id == tournament.id)
             )
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_registration_password_is_required_when_set(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, password="tarmac26") as tournament:
+        missing = await register_team(tournament, "No Password", ["Ann"])
+        wrong = await register_team(tournament, "Wrong", ["Ann"], password="nope")
+
+        assert missing["detail"] == "The registration password is incorrect"
+        assert wrong["detail"] == "The registration password is incorrect"
+        await assert_row_count_and_clear(teams, 0)
+
+        correct = await register_team(tournament, "Correct", ["Ann"], password="tarmac26")
+
+        assert correct["data"]["name"] == "Correct"
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_registration_password_is_never_exposed(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, password="tarmac26") as tournament:
+        # A logged out browser still sends the (empty) authorization header.
+        response = await send_request(
+            HTTPMethod.GET,
+            f"tournaments?endpoint_name={tournament.dashboard_endpoint}",
+            headers={"Authorization": "bearer "},
+        )
+
+        [data] = response["data"]
+        assert "registration_password" not in data
+        assert data["registration_password_required"] is True
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_split_team_distributes_players_over_the_other_teams(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, team_size_max=3) as tournament:
+        first = await register_team(tournament, "First", ["Ann"])
+        second = await register_team(tournament, "Second", ["Bob"])
+        dissolved = await register_team(tournament, "Dissolved", ["Cid", "Dee"])
+
+        players_of_dissolved = await database.fetch_all(
+            query=players_x_teams.select().where(
+                players_x_teams.c.team_id == dissolved["data"]["id"]
+            )
+        )
+        assignments = {
+            str(players_of_dissolved[0]["player_id"]): first["data"]["id"],
+            str(players_of_dissolved[1]["player_id"]): second["data"]["id"],
+        }
+        response = await send_auth_request(
+            HTTPMethod.POST,
+            f"tournaments/{tournament.id}/teams/{dissolved['data']['id']}/split",
+            auth_context,
+            json={"assignments": assignments},
+        )
+
+        assert response["success"] is True
+        remaining = await database.fetch_all(query=teams.select())
+        assert sorted(team["name"] for team in remaining) == ["First", "Second"]
+
+        await assert_row_count_and_clear(players_x_teams, 4)
+        await assert_row_count_and_clear(players, 4)
+        await assert_row_count_and_clear(teams, 2)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_split_team_is_rejected_when_a_target_would_be_too_large(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, team_size_max=2) as tournament:
+        target = await register_team(tournament, "Target", ["Ann", "Bob"])
+        dissolved = await register_team(tournament, "Dissolved", ["Cid"])
+
+        [player_of_dissolved] = await database.fetch_all(
+            query=players_x_teams.select().where(
+                players_x_teams.c.team_id == dissolved["data"]["id"]
+            )
+        )
+        response = await send_auth_request(
+            HTTPMethod.POST,
+            f"tournaments/{tournament.id}/teams/{dissolved['data']['id']}/split",
+            auth_context,
+            json={
+                "assignments": {str(player_of_dissolved["player_id"]): target["data"]["id"]},
+            },
+        )
+
+        assert response["detail"] == (
+            "'Target' would end up with 3 members, which exceeds the maximum team size of 2"
+        )
+        await assert_row_count_and_clear(players_x_teams, 3)
+        await assert_row_count_and_clear(players, 3)
+        await assert_row_count_and_clear(teams, 2)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_merge_team_can_rename_the_remaining_team(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, team_size_max=4) as tournament:
+        target = await register_team(tournament, "Target", ["Ann"])
+        source = await register_team(tournament, "Source", ["Bob"])
+
+        response = await send_auth_request(
+            HTTPMethod.POST,
+            f"tournaments/{tournament.id}/teams/{source['data']['id']}/merge",
+            auth_context,
+            json={"target_team_id": target["data"]["id"], "target_team_name": "Merged Team"},
+        )
+
+        assert response["success"] is True
+        remaining = await database.fetch_all(query=teams.select())
+        assert [team["name"] for team in remaining] == ["Merged Team"]
+
+        await assert_row_count_and_clear(players_x_teams, 2)
+        await assert_row_count_and_clear(players, 2)
+        await assert_row_count_and_clear(teams, 1)
 
 
 @pytest.mark.asyncio(loop_scope="session")

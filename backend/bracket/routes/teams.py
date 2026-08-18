@@ -1,15 +1,17 @@
 import csv
 import os
 from decimal import Decimal
+from hmac import compare_digest
 from uuid import uuid4
 
 import aiofiles
 import aiofiles.os
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from heliclockter import datetime_utc
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.rate_limit import check_registration_rate_limit
 from bracket.logic.ranking.statistics import START_ELO
 from bracket.logic.subscriptions import check_requirement
 from bracket.logic.teams import get_team_logo_path
@@ -22,6 +24,7 @@ from bracket.models.db.team import (
     TeamMergeBody,
     TeamMultiBody,
     TeamRegistrationBody,
+    TeamSplitBody,
 )
 from bracket.models.db.tournament import Tournament
 from bracket.models.db.user import UserPublic
@@ -231,6 +234,76 @@ async def merge_team(
                 values={"team_id": body.target_team_id, "player_id": player_id},
             )
 
+        if body.target_team_name is not None:
+            await database.execute(
+                query=teams.update().where(
+                    (teams.c.id == body.target_team_id) & (teams.c.tournament_id == tournament_id)
+                ),
+                values={"name": body.target_team_name},
+            )
+
+        with check_foreign_key_violation(
+            {
+                ForeignKey.stage_item_inputs_team_id_fkey,
+                ForeignKey.matches_stage_item_input1_id_fkey,
+                ForeignKey.matches_stage_item_input2_id_fkey,
+            }
+        ):
+            await sql_delete_team(tournament_id, team.id)
+
+    return SuccessResponse()
+
+
+@router.post("/tournaments/{tournament_id}/teams/{team_id}/split", response_model=SuccessResponse)
+async def split_team(
+    tournament_id: TournamentId,
+    body: TeamSplitBody,
+    _: UserPublic = Depends(user_authenticated_for_tournament),
+    tournament: Tournament = Depends(disallow_archived_tournament),
+    team: FullTeamWithPlayers = Depends(team_with_players_dependency),
+) -> SuccessResponse:
+    """
+    Distributes the members of a team over other teams and removes the emptied team, so a
+    team that is short of players can be dissolved into the remaining ones.
+    """
+    if set(body.assignments) != set(team.player_ids):
+        raise HTTPException(
+            status_code=400, detail="Every member of this team must be assigned to a team"
+        )
+
+    if team.id in set(body.assignments.values()):
+        raise HTTPException(status_code=400, detail="Can't assign a player to the team itself")
+
+    # Splitting removes the team, which is impossible once it takes part in a stage item.
+    if await sql_get_stage_item_input_count_of_team(team.id) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This team is already assigned to a stage item, remove it from there "
+            "before splitting it up",
+        )
+
+    teams_in_tournament = {other.id: other for other in await get_teams_with_members(tournament_id)}
+    for target_team_id in set(body.assignments.values()):
+        target_team = teams_in_tournament.get(target_team_id)
+        if target_team is None:
+            raise HTTPException(status_code=404, detail="Could not find one of the target teams")
+
+        added = sum(1 for assigned in body.assignments.values() if assigned == target_team_id)
+        new_size = len(target_team.players) + added
+        if new_size > tournament.team_size_max:
+            raise HTTPException(
+                status_code=400,
+                detail=f"'{target_team.name}' would end up with {new_size} members, which "
+                f"exceeds the maximum team size of {tournament.team_size_max}",
+            )
+
+    async with database.transaction():
+        for player_id, target_team_id in body.assignments.items():
+            await database.execute(
+                query=players_x_teams.insert(),
+                values={"team_id": target_team_id, "player_id": player_id},
+            )
+
         with check_foreign_key_violation(
             {
                 ForeignKey.stage_item_inputs_team_id_fkey,
@@ -313,6 +386,7 @@ async def create_multiple_teams(
 async def register_team(
     body: TeamRegistrationBody,
     tournament_id: TournamentId,
+    request: Request,
     tournament: Tournament = Depends(disallow_archived_tournament),
 ) -> SingleTeamResponse:
     if not tournament.registration_enabled:
@@ -323,6 +397,13 @@ async def register_team(
         and datetime_utc.now() > tournament.registration_deadline
     ):
         raise HTTPException(status_code=403, detail="The registration deadline has passed")
+
+    if tournament.registration_password is not None and not compare_digest(
+        body.password or "", tournament.registration_password
+    ):
+        raise HTTPException(status_code=403, detail="The registration password is incorrect")
+
+    check_registration_rate_limit(request)
 
     team_size = len(body.player_names)
     if not (tournament.team_size_min <= team_size <= tournament.team_size_max):

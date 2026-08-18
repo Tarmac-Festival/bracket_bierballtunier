@@ -1392,6 +1392,10 @@ export type TeamMergeBody = {
    * Target Team Id
    */
   target_team_id: number;
+  /**
+   * Target Team Name
+   */
+  target_team_name: string | null;
 };
 
 /**
@@ -1417,9 +1421,27 @@ export type TeamRegistrationBody = {
    */
   name: string;
   /**
+   * Password
+   */
+  password: string | null;
+  /**
    * Player Names
    */
   player_names: Array<string>;
+};
+
+/**
+ * TeamSplitBody
+ *
+ * Maps each player of the team being dissolved to the team they should end up in.
+ */
+export type TeamSplitBody = {
+  /**
+   * Assignments
+   */
+  assignments: {
+    [key: string]: number;
+  };
 };
 
 /**
@@ -1519,6 +1541,10 @@ export type Tournament = {
    */
   registration_info: string | null;
   /**
+   * Registration Password Required
+   */
+  readonly registration_password_required: boolean;
+  /**
    * Rules
    */
   rules: string | null;
@@ -1589,6 +1615,10 @@ export type TournamentBody = {
    * Registration Info
    */
   registration_info: unknown | string;
+  /**
+   * Registration Password
+   */
+  registration_password: unknown | string;
   /**
    * Rules
    */
@@ -1674,6 +1704,10 @@ export type TournamentUpdateBody = {
    * Registration Info
    */
   registration_info: unknown | string;
+  /**
+   * Registration Password
+   */
+  registration_password: unknown | string;
   /**
    * Rules
    */
@@ -1819,6 +1853,106 @@ export type ValidationError = {
    * Error Type
    */
   type: string;
+};
+
+/**
+ * Tournament
+ */
+export type TournamentWritable = {
+  /**
+   * Auto Assign Courts
+   */
+  auto_assign_courts: boolean;
+  /**
+   * Club Id
+   */
+  club_id: number;
+  /**
+   * Created
+   */
+  created: string;
+  /**
+   * Dashboard Endpoint
+   */
+  dashboard_endpoint: string | null;
+  /**
+   * Dashboard Public
+   */
+  dashboard_public: boolean;
+  /**
+   * Duration Minutes
+   */
+  duration_minutes: number;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Logo Path
+   */
+  logo_path: string | null;
+  /**
+   * Margin Minutes
+   */
+  margin_minutes: number;
+  /**
+   * Max Teams
+   */
+  max_teams: number | null;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Players Can Be In Multiple Teams
+   */
+  players_can_be_in_multiple_teams: boolean;
+  /**
+   * Registration Deadline
+   */
+  registration_deadline: string | null;
+  /**
+   * Registration Enabled
+   */
+  registration_enabled: boolean;
+  /**
+   * Registration Info
+   */
+  registration_info: string | null;
+  /**
+   * Rules
+   */
+  rules: string | null;
+  /**
+   * Start Time
+   */
+  start_time: string;
+  status: TournamentStatus;
+  /**
+   * Team Size Max
+   */
+  team_size_max: number;
+  /**
+   * Team Size Min
+   */
+  team_size_min: number;
+};
+
+/**
+ * TournamentResponse
+ */
+export type TournamentResponseWritable = {
+  data: TournamentWritable;
+};
+
+/**
+ * TournamentsResponse
+ */
+export type TournamentsResponseWritable = {
+  /**
+   * Data
+   */
+  data: Array<TournamentWritable>;
 };
 
 export type GetClubsClubsGetData = {
@@ -3726,6 +3860,42 @@ export type MergeTeamTournamentsTournamentIdTeamsTeamIdMergePostResponses = {
 
 export type MergeTeamTournamentsTournamentIdTeamsTeamIdMergePostResponse =
   MergeTeamTournamentsTournamentIdTeamsTeamIdMergePostResponses[keyof MergeTeamTournamentsTournamentIdTeamsTeamIdMergePostResponses];
+
+export type SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostData = {
+  body: TeamSplitBody;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+    /**
+     * Team Id
+     */
+    team_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/teams/{team_id}/split';
+};
+
+export type SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostError =
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors[keyof SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostErrors];
+
+export type SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SuccessResponse;
+};
+
+export type SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponse =
+  SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses[keyof SplitTeamTournamentsTournamentIdTeamsTeamIdSplitPostResponses];
 
 export type CreateMultipleTeamsTournamentsTournamentIdTeamsMultiPostData = {
   body: TeamMultiBody;

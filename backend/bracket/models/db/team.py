@@ -75,7 +75,17 @@ class TeamMultiBody(BaseModelORM):
 class TeamRegistrationBody(BaseModelORM):
     name: Annotated[str, StringConstraints(min_length=1, max_length=30)]
     player_names: list[Annotated[str, StringConstraints(min_length=1, max_length=30)]]
+    password: str | None = None
 
 
 class TeamMergeBody(BaseModelORM):
     target_team_id: TeamId
+    target_team_name: Annotated[str, StringConstraints(min_length=1, max_length=30)] | None = None
+
+
+class TeamSplitBody(BaseModelORM):
+    """
+    Maps each player of the team being dissolved to the team they should end up in.
+    """
+
+    assignments: dict[PlayerId, TeamId]
