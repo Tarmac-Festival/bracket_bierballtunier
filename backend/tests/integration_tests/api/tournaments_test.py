@@ -140,6 +140,7 @@ async def test_update_tournament(
 ) -> None:
     body = {
         "name": "Some new name",
+        "club_id": auth_context.club.id,
         "start_time": DUMMY_MOCK_TIME.isoformat().replace("+00:00", "Z"),
         "dashboard_public": False,
         "players_can_be_in_multiple_teams": True,

@@ -9,7 +9,7 @@ export function Brand() {
         <Group>
           <Image
             style={{ width: '38px', marginRight: '0px' }}
-            src="/favicon.svg"
+            src="/tarmac-logo.png"
             alt="Tarmac logo"
           />
           <Title style={{ height: '38px', marginBottom: '0.4rem' }}>Tarmac</Title>
@@ -26,7 +26,7 @@ export function BrandFooter() {
         <Image
           mb="0.25rem"
           style={{ width: '32px', marginRight: '0px' }}
-          src="/favicon.svg"
+          src="/tarmac-logo.png"
           alt="Tarmac logo"
         />
         <Text size="xl" ml="0.75rem">

@@ -173,6 +173,7 @@ function GeneralTournamentForm({
 
         await updateTournament(
           tournament.id,
+          parseInt(values.club_id, 10),
           values.name,
           values.dashboard_public,
           values.dashboard_endpoint,

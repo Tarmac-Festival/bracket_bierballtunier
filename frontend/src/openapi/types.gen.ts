@@ -1620,6 +1620,10 @@ export type TournamentBody = {
    */
   registration_password: unknown | string;
   /**
+   * Remove Registration Password
+   */
+  remove_registration_password: boolean;
+  /**
    * Rules
    */
   rules: unknown | string;
@@ -1665,6 +1669,10 @@ export type TournamentUpdateBody = {
    */
   auto_assign_courts: boolean;
   /**
+   * Club Id
+   */
+  club_id: number;
+  /**
    * Dashboard Endpoint
    */
   dashboard_endpoint: unknown | string;
@@ -1708,6 +1716,10 @@ export type TournamentUpdateBody = {
    * Registration Password
    */
   registration_password: unknown | string;
+  /**
+   * Remove Registration Password
+   */
+  remove_registration_password: boolean;
   /**
    * Rules
    */

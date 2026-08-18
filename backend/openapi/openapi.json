@@ -2874,6 +2874,11 @@
             ],
             "title": "Registration Password"
           },
+          "remove_registration_password": {
+            "default": false,
+            "title": "Remove Registration Password",
+            "type": "boolean"
+          },
           "rules": {
             "anyOf": [
               {},
@@ -2902,6 +2907,7 @@
           }
         },
         "required": [
+          "club_id",
           "start_time",
           "name",
           "dashboard_public",
@@ -2910,6 +2916,7 @@
           "registration_enabled",
           "registration_info",
           "registration_password",
+          "remove_registration_password",
           "registration_deadline",
           "team_size_min",
           "team_size_max",
@@ -2917,8 +2924,7 @@
           "players_can_be_in_multiple_teams",
           "auto_assign_courts",
           "duration_minutes",
-          "margin_minutes",
-          "club_id"
+          "margin_minutes"
         ],
         "title": "TournamentBody",
         "type": "object"
@@ -2960,6 +2966,10 @@
           "auto_assign_courts": {
             "title": "Auto Assign Courts",
             "type": "boolean"
+          },
+          "club_id": {
+            "title": "Club Id",
+            "type": "integer"
           },
           "dashboard_endpoint": {
             "anyOf": [
@@ -3039,6 +3049,11 @@
             ],
             "title": "Registration Password"
           },
+          "remove_registration_password": {
+            "default": false,
+            "title": "Remove Registration Password",
+            "type": "boolean"
+          },
           "rules": {
             "anyOf": [
               {},
@@ -3067,6 +3082,7 @@
           }
         },
         "required": [
+          "club_id",
           "start_time",
           "name",
           "dashboard_public",
@@ -3075,6 +3091,7 @@
           "registration_enabled",
           "registration_info",
           "registration_password",
+          "remove_registration_password",
           "registration_deadline",
           "team_size_min",
           "team_size_max",

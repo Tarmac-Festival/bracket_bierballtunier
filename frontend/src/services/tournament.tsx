@@ -74,6 +74,7 @@ export async function unarchiveTournament(tournament_id: number) {
 
 export async function updateTournament(
   tournament_id: number,
+  club_id: number,
   name: string,
   dashboard_public: boolean,
   dashboard_endpoint: string | null | undefined,
@@ -94,6 +95,7 @@ export async function updateTournament(
 ) {
   return createAxios()
     .put(`tournaments/${tournament_id}`, {
+      club_id,
       name,
       dashboard_public,
       dashboard_endpoint,

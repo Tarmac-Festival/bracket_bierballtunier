@@ -104,9 +104,17 @@ async def get_tournaments(
 async def update_tournament_by_id(
     tournament_id: TournamentId,
     tournament_body: TournamentUpdateBody,
-    _: UserPublic = Depends(user_authenticated_for_tournament),
+    user: UserPublic = Depends(user_authenticated_for_tournament),
     __: Tournament = Depends(disallow_archived_tournament),
 ) -> SuccessResponse:
+    # The tournament can be moved to another club, which must be one the user is part of.
+    if not await get_user_access_to_club(tournament_body.club_id, user.id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Club ID is invalid",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     with check_unique_constraint_violation({UniqueIndex.ix_tournaments_dashboard_endpoint}):
         await sql_update_tournament(tournament_id, tournament_body)
 

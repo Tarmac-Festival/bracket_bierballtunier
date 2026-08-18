@@ -53,6 +53,7 @@ class Tournament(TournamentInsertable):
 
 
 class TournamentUpdateBody(BaseModelORM):
+    club_id: ClubId
     start_time: datetime_utc
     name: str
     dashboard_public: bool
@@ -79,4 +80,4 @@ class TournamentChangeStatusBody(BaseModelORM):
 
 
 class TournamentBody(TournamentUpdateBody):
-    club_id: ClubId
+    pass

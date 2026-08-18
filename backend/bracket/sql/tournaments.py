@@ -92,6 +92,7 @@ async def sql_update_tournament(
     query = """
         UPDATE tournaments
         SET
+            club_id = :club_id,
             start_time = :start_time,
             name = :name,
             dashboard_public = :dashboard_public,

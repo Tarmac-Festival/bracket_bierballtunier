@@ -6,6 +6,7 @@ from heliclockter import datetime_utc
 
 from bracket.database import database
 from bracket.logic.rate_limit import registration_rate_limiter
+from bracket.models.db.club import ClubInsertable
 from bracket.models.db.tournament import Tournament
 from bracket.schema import (
     matches,
@@ -17,12 +18,17 @@ from bracket.schema import (
     stage_items,
     stages,
     teams,
+    tournaments,
 )
-from bracket.utils.dummy_records import DUMMY_TOURNAMENT
+from bracket.utils.dummy_records import DUMMY_MOCK_TIME, DUMMY_TOURNAMENT
 from bracket.utils.http import HTTPMethod
 from tests.integration_tests.api.shared import send_auth_request, send_request
 from tests.integration_tests.models import AuthContext
-from tests.integration_tests.sql import assert_row_count_and_clear, inserted_tournament
+from tests.integration_tests.sql import (
+    assert_row_count_and_clear,
+    inserted_club,
+    inserted_tournament,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -348,6 +354,33 @@ async def test_merge_team_can_rename_the_remaining_team(
         await assert_row_count_and_clear(players_x_teams, 2)
         await assert_row_count_and_clear(players, 2)
         await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_tournament_cannot_be_moved_to_a_club_the_user_has_no_access_to(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with inserted_club(ClubInsertable(name="Someone Else", created=DUMMY_MOCK_TIME)) as club:
+        body = {
+            "name": auth_context.tournament.name,
+            "club_id": club.id,
+            "start_time": DUMMY_MOCK_TIME.isoformat().replace("+00:00", "Z"),
+            "dashboard_public": True,
+            "players_can_be_in_multiple_teams": True,
+            "auto_assign_courts": True,
+            "duration_minutes": 10,
+            "margin_minutes": 5,
+        }
+        response = await send_auth_request(
+            HTTPMethod.PUT, f"tournaments/{auth_context.tournament.id}", auth_context, json=body
+        )
+
+        assert response["detail"] == "Club ID is invalid"
+        unchanged = await database.fetch_val(
+            query=tournaments.select().where(tournaments.c.id == auth_context.tournament.id),
+            column="club_id",
+        )
+        assert unchanged == auth_context.club.id
 
 
 @pytest.mark.asyncio(loop_scope="session")
