@@ -26,6 +26,7 @@ class TournamentInsertable(BaseModelORM):
     logo_path: str | None = None
     rules: str | None = None
     registration_enabled: bool = False
+    registration_info: str | None = None
     registration_deadline: datetime_utc | None = None
     team_size_min: int = Field(1, ge=1)
     team_size_max: int = Field(8, ge=1)
@@ -46,6 +47,7 @@ class TournamentUpdateBody(BaseModelORM):
     dashboard_endpoint: EmptyStrToNone | str = None
     rules: EmptyStrToNone | str = None
     registration_enabled: bool = False
+    registration_info: EmptyStrToNone | str = None
     registration_deadline: datetime_utc | None = None
     team_size_min: int = Field(1, ge=1)
     team_size_max: int = Field(8, ge=1)

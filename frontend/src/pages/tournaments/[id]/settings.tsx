@@ -136,6 +136,7 @@ function GeneralTournamentForm({
       dashboard_endpoint: tournament.dashboard_endpoint,
       rules: tournament.rules || '',
       registration_enabled: tournament.registration_enabled,
+      registration_info: tournament.registration_info || '',
       registration_deadline: tournament.registration_deadline
         ? dayjs(tournament.registration_deadline)
         : null,
@@ -180,6 +181,7 @@ function GeneralTournamentForm({
           values.margin_minutes,
           values.rules,
           values.registration_enabled,
+          values.registration_info,
           values.registration_deadline,
           values.team_size_min,
           values.team_size_max,
@@ -262,6 +264,16 @@ function GeneralTournamentForm({
         <Checkbox
           label={t('registration_enabled_description')}
           {...form.getInputProps('registration_enabled', { type: 'checkbox' })}
+        />
+
+        <Textarea
+          label={t('registration_info_label')}
+          description={t('registration_info_description')}
+          placeholder={t('registration_info_placeholder')}
+          mt="lg"
+          minRows={4}
+          autosize
+          {...form.getInputProps('registration_info')}
         />
 
         <Text fz="sm" mt="lg">

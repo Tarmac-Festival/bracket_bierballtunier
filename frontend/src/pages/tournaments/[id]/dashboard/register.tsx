@@ -4,6 +4,7 @@ import {
   Button,
   Container,
   Group,
+  Paper,
   Stack,
   Text,
   TextInput,
@@ -16,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DashboardFooter } from '@components/dashboard/footer';
 import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
+import { RichText } from '@components/dashboard/rules_content';
 import { registrationIsOpen } from '@components/utils/tournament';
 import { setTitle } from '@components/utils/util';
 import { Tournament } from '@openapi';
@@ -135,6 +137,12 @@ export default function DashboardRegisterPage() {
       <DoubleHeader tournamentData={tournament} />
       <Container mt="1rem" px="0rem">
         <Container style={{ width: '100%', maxWidth: '32rem' }} px="sm">
+          {tournament.registration_info ? (
+            <Paper withBorder radius="md" p="md" mb="lg">
+              <RichText text={tournament.registration_info} />
+            </Paper>
+          ) : null}
+
           {!registrationOpen ? (
             <Alert icon={<IconAlertCircle size={16} />} color="gray" radius="md">
               {tournament.registration_enabled

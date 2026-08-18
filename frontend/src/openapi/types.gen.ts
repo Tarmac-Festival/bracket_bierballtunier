@@ -1515,6 +1515,10 @@ export type Tournament = {
    */
   registration_enabled: boolean;
   /**
+   * Registration Info
+   */
+  registration_info: string | null;
+  /**
    * Rules
    */
   rules: string | null;
@@ -1581,6 +1585,10 @@ export type TournamentBody = {
    * Registration Enabled
    */
   registration_enabled?: boolean;
+  /**
+   * Registration Info
+   */
+  registration_info?: unknown | string;
   /**
    * Rules
    */
@@ -1662,6 +1670,10 @@ export type TournamentUpdateBody = {
    * Registration Enabled
    */
   registration_enabled?: boolean;
+  /**
+   * Registration Info
+   */
+  registration_info?: unknown | string;
   /**
    * Rules
    */

@@ -55,6 +55,7 @@ function GeneralTournamentForm({
       dashboard_endpoint: '',
       rules: '',
       registration_enabled: false,
+      registration_info: '',
       registration_deadline: null,
       team_size_min: 1,
       team_size_max: 8,
@@ -95,6 +96,7 @@ function GeneralTournamentForm({
           values.margin_minutes,
           values.rules,
           values.registration_enabled,
+          values.registration_info,
           values.registration_deadline,
           values.team_size_min,
           values.team_size_max,
@@ -184,6 +186,14 @@ function GeneralTournamentForm({
 
       {form.values.registration_enabled ? (
         <>
+          <Textarea
+            label={t('registration_info_label')}
+            placeholder={t('registration_info_placeholder')}
+            mt="md"
+            minRows={3}
+            autosize
+            {...form.getInputProps('registration_info')}
+          />
           <DateTimePicker
             clearable
             label={t('registration_deadline_label')}

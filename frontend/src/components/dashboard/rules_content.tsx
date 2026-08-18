@@ -117,6 +117,28 @@ function Blocks({ blocks }: { blocks: Block[] }) {
   );
 }
 
+/**
+ * Renders the same markup as the rules, but as one flat block: useful for shorter texts
+ * where collapsing every section would only get in the way.
+ */
+export function RichText({ text }: { text: string }) {
+  const { intro, sections } = parseRules(text);
+
+  return (
+    <>
+      <Blocks blocks={intro} />
+      {sections.map((section) => (
+        <div key={section.title}>
+          <Title order={4} mt="md" mb="xs" tt="uppercase">
+            {section.title}
+          </Title>
+          <Blocks blocks={section.blocks} />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function RulesContent({ rules }: { rules: string }) {
   const { intro, sections } = parseRules(rules);
 
