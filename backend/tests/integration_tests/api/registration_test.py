@@ -6,7 +6,17 @@ from heliclockter import datetime_utc
 
 from bracket.database import database
 from bracket.models.db.tournament import Tournament
-from bracket.schema import players, players_x_teams, teams
+from bracket.schema import (
+    matches,
+    players,
+    players_x_teams,
+    rankings,
+    rounds,
+    stage_item_inputs,
+    stage_items,
+    stages,
+    teams,
+)
 from bracket.utils.dummy_records import DUMMY_TOURNAMENT
 from bracket.utils.http import HTTPMethod
 from tests.integration_tests.api.shared import send_auth_request, send_request
@@ -154,6 +164,51 @@ async def test_merge_team_is_rejected_when_the_result_would_be_too_large(
         await assert_row_count_and_clear(players_x_teams, 3)
         await assert_row_count_and_clear(players, 3)
         await assert_row_count_and_clear(teams, 2)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_creating_a_stage_item_restores_a_missing_default_ranking(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    """
+    A failed tournament deletion used to delete the rankings before bailing out, leaving
+    tournaments that could no longer get a stage item.
+    """
+    async with tournament_with_registration(auth_context) as tournament:
+        await database.execute(
+            query=rankings.delete().where(rankings.c.tournament_id == tournament.id)
+        )
+        stage = await send_auth_request(
+            HTTPMethod.POST, f"tournaments/{tournament.id}/stages", auth_context, json={}
+        )
+        assert stage["success"] is True
+
+        stage_id = await database.fetch_val(
+            query=stages.select().where(stages.c.tournament_id == tournament.id), column="id"
+        )
+        response = await send_auth_request(
+            HTTPMethod.POST,
+            f"tournaments/{tournament.id}/stage_items",
+            auth_context,
+            json={"stage_id": stage_id, "type": "SINGLE_ELIMINATION", "team_count": 16},
+        )
+
+        assert response["success"] is True
+        restored = await database.fetch_all(
+            query=rankings.select().where(rankings.c.tournament_id == tournament.id)
+        )
+        assert len(restored) == 1
+
+        # The tournament is removed when leaving the context manager, so take everything
+        # the stage item created with it. Only this test creates matches, rounds and stage
+        # items, so those can be cleared wholesale.
+        for table in (matches, rounds, stage_items):
+            await database.execute(query=table.delete())
+
+        for table in (stage_item_inputs, stages, rankings):
+            await database.execute(
+                query=table.delete().where(table.c.tournament_id == tournament.id)
+            )
 
 
 @pytest.mark.asyncio(loop_scope="session")
