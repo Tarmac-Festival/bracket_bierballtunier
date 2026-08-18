@@ -11,6 +11,7 @@ export async function createTournament(
   start_time: Dayjs,
   duration_minutes: number,
   margin_minutes: number,
+  rules?: string,
 ) {
   return createAxios()
     .post('tournaments', {
@@ -23,6 +24,7 @@ export async function createTournament(
       start_time,
       duration_minutes,
       margin_minutes,
+      rules,
     })
     .catch((response: any) => handleRequestError(response));
 }
@@ -49,6 +51,7 @@ export async function updateTournament(
   start_time: string,
   duration_minutes: number,
   margin_minutes: number,
+  rules?: string | null,
 ) {
   return createAxios()
     .put(`tournaments/${tournament_id}`, {
@@ -60,6 +63,7 @@ export async function updateTournament(
       start_time,
       duration_minutes,
       margin_minutes,
+      rules,
     })
     .catch((response: any) => handleRequestError(response));
 }

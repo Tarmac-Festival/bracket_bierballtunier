@@ -1479,6 +1479,10 @@ export type Tournament = {
    */
   players_can_be_in_multiple_teams: boolean;
   /**
+   * Rules
+   */
+  rules: string | null;
+  /**
    * Start Time
    */
   start_time: string;
@@ -1521,6 +1525,10 @@ export type TournamentBody = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Rules
+   */
+  rules?: unknown | string;
   /**
    * Start Time
    */
@@ -1578,6 +1586,10 @@ export type TournamentUpdateBody = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Rules
+   */
+  rules?: unknown | string;
   /**
    * Start Time
    */

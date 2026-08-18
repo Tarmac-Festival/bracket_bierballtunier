@@ -6,6 +6,7 @@ import {
   Modal,
   NumberInput,
   Select,
+  Textarea,
   TextInput,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
@@ -51,6 +52,7 @@ function GeneralTournamentForm({
       club_id: null,
       dashboard_public: true,
       dashboard_endpoint: '',
+      rules: '',
       players_can_be_in_multiple_teams: false,
       auto_assign_courts: true,
       duration_minutes: 10,
@@ -81,6 +83,7 @@ function GeneralTournamentForm({
           values.start_time,
           values.duration_minutes,
           values.margin_minutes,
+          values.rules,
         );
         await swrTournamentsResponse.mutate();
         setOpened(false);
@@ -148,6 +151,15 @@ function GeneralTournamentForm({
           />
         </Grid.Col>
       </Grid>
+
+      <Textarea
+        label={t('tournament_rules_label')}
+        placeholder={t('tournament_rules_placeholder')}
+        mt="lg"
+        minRows={4}
+        autosize
+        {...form.getInputProps('rules')}
+      />
 
       <Checkbox
         mt="md"

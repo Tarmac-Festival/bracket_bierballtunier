@@ -12,6 +12,7 @@ import {
   NumberInput,
   Select,
   Text,
+  Textarea,
   TextInput,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
@@ -132,6 +133,7 @@ function GeneralTournamentForm({
       club_id: `${tournament.club_id}`,
       dashboard_public: tournament.dashboard_public,
       dashboard_endpoint: tournament.dashboard_endpoint,
+      rules: tournament.rules || '',
       players_can_be_in_multiple_teams: tournament.players_can_be_in_multiple_teams,
       auto_assign_courts: tournament.auto_assign_courts,
       duration_minutes: tournament.duration_minutes,
@@ -164,6 +166,7 @@ function GeneralTournamentForm({
           values.start_time.toISOString(),
           values.duration_minutes,
           values.margin_minutes,
+          values.rules,
         );
 
         await swrTournamentResponse.mutate();
@@ -227,6 +230,15 @@ function GeneralTournamentForm({
             />
           </Grid.Col>
         </Grid>
+      </Fieldset>
+      <Fieldset legend={t('tournament_rules_legend')} mt="lg" radius="md">
+        <Textarea
+          label={t('tournament_rules_label')}
+          placeholder={t('tournament_rules_placeholder')}
+          minRows={4}
+          autosize
+          {...form.getInputProps('rules')}
+        />
       </Fieldset>
       <Fieldset legend={t('dashboard_settings_title')} mt="lg" radius="md">
         <Text fz="sm">{t('dashboard_link_label')}</Text>

@@ -82,6 +82,9 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
   const mainLinks = [
     { link: `/tournaments/${endpoint}/dashboard`, label: 'Matches' },
     { link: `/tournaments/${endpoint}/dashboard/standings`, label: 'Standings' },
+    ...(tournamentData.rules
+      ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: 'Rules' }]
+      : []),
   ];
 
   const mainItems = mainLinks.map((item) => (
