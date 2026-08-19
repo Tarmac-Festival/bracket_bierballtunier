@@ -7,7 +7,9 @@ ENV NODE_ENV=production
 
 COPY frontend .
 
-RUN apk add pnpm && \
+# Through npm, not `apk add pnpm`: that pulls a second Node in next to the one this
+# image already ships, and installing it fails on the image's own /usr/bin.
+RUN npm install -g pnpm@11 && \
     CI=true pnpm install && \
     VITE_API_BASE_URL=http://localhost:8400/api pnpm build
 

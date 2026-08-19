@@ -280,6 +280,9 @@ function EventBand({ column, height }: { column: Column & { kind: 'event' }; hei
         justifyContent: 'center',
         overflow: 'hidden',
       }}
+      title={[column.event.name, column.event.location, column.event.description]
+        .filter(Boolean)
+        .join(' · ')}
     >
       <Text
         fz="xs"
@@ -294,6 +297,7 @@ function EventBand({ column, height }: { column: Column & { kind: 'event' }; hei
         }}
       >
         {column.label}
+        {column.event.location ? ` · ${column.event.location}` : ''}
       </Text>
     </div>
   );

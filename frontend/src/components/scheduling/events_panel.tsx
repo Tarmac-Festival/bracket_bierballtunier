@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SWRResponse } from 'swr';
 
-import { TournamentEventModal } from '@components/modals/tournament_event_modal';
+import { AnchorOption, TournamentEventModal } from '@components/modals/tournament_event_modal';
 import { formatDayAndTime, formatTime } from '@components/utils/datetime';
-import { TournamentEvent, TournamentEventsResponse } from '@openapi';
+import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
+import { Translator } from '@components/utils/types';
+import { StageWithStageItems, TournamentEvent, TournamentEventsResponse } from '@openapi';
 import { deleteTournamentEvent } from '@services/tournament_event';
 
 function endOf(event: TournamentEvent) {
@@ -15,13 +17,64 @@ function endOf(event: TournamentEvent) {
   ).toISOString();
 }
 
+/**
+ * Everything an event can be pinned to, labelled the way it reads in the schedule.
+ */
+function anchorOptions(
+  t: Translator,
+  stages: StageWithStageItems[],
+  stageItemsLookup: any,
+  matchesLookup: any,
+): { rounds: AnchorOption[]; matches: AnchorOption[] } {
+  const rounds: AnchorOption[] = [];
+  const matches: AnchorOption[] = [];
+
+  for (const stage of stages) {
+    for (const stageItem of stage.stage_items) {
+      for (const round of stageItem.rounds) {
+        rounds.push({ value: `${round.id}`, label: `${stageItem.name} · ${round.name}` });
+
+        for (const match of round.matches) {
+          const team1 = formatMatchInput1(t, stageItemsLookup, matchesLookup, match as any);
+          const team2 = formatMatchInput2(t, stageItemsLookup, matchesLookup, match as any);
+          matches.push({
+            value: `${match.id}`,
+            label: `${round.name} · ${team1} – ${team2}`,
+          });
+        }
+      }
+    }
+  }
+
+  return { rounds, matches };
+}
+
+function anchorLabel(
+  event: TournamentEvent,
+  options: { rounds: AnchorOption[]; matches: AnchorOption[] },
+) {
+  if (event.after_match_id != null) {
+    return options.matches.find((option) => option.value === `${event.after_match_id}`)?.label;
+  }
+  if (event.after_round_id != null) {
+    return options.rounds.find((option) => option.value === `${event.after_round_id}`)?.label;
+  }
+  return null;
+}
+
 export function EventsPanel({
   tournamentId,
   swrEventsResponse,
+  stages,
+  stageItemsLookup,
+  matchesLookup,
   onChanged,
 }: {
   tournamentId: number;
   swrEventsResponse: SWRResponse<TournamentEventsResponse>;
+  stages: StageWithStageItems[];
+  stageItemsLookup: any;
+  matchesLookup: any;
   // The schedule shifts when a blocking event changes, so the matches are reloaded too.
   onChanged: () => Promise<any>;
 }) {
@@ -30,6 +83,7 @@ export function EventsPanel({
   const [editing, setEditing] = useState<TournamentEvent | null>(null);
 
   const events = swrEventsResponse.data?.data ?? [];
+  const options = anchorOptions(t, stages, stageItemsLookup, matchesLookup);
 
   const reload = async () => {
     await swrEventsResponse.mutate();
@@ -49,6 +103,8 @@ export function EventsPanel({
           key={editing?.id ?? 'new'}
           tournamentId={tournamentId}
           event={editing}
+          roundOptions={options.rounds}
+          matchOptions={options.matches}
           opened={opened}
           setOpened={setOpened}
           onSaved={reload}
@@ -83,6 +139,16 @@ export function EventsPanel({
                     {formatDayAndTime(event.start_time)} – {formatTime(endOf(event))} (
                     {t('event_duration_summary', { minutes: event.duration_minutes })})
                   </Text>
+                  {anchorLabel(event, options) != null ? (
+                    <Text fz="sm" c="dimmed">
+                      {t('event_follows_summary', { anchor: anchorLabel(event, options) })}
+                    </Text>
+                  ) : null}
+                  {event.location ? (
+                    <Text fz="sm" mt={4}>
+                      📍 {event.location}
+                    </Text>
+                  ) : null}
                   {event.description ? (
                     <Text fz="sm" mt={4}>
                       {event.description}

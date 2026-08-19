@@ -354,6 +354,9 @@ export default function SchedulePage() {
       <EventsPanel
         tournamentId={tournamentData.id}
         swrEventsResponse={swrEventsResponse}
+        stages={swrStagesResponse.data?.data ?? []}
+        stageItemsLookup={stageItemsLookup}
+        matchesLookup={matchesLookup}
         onChanged={async () => {
           await swrStagesResponse.mutate();
         }}

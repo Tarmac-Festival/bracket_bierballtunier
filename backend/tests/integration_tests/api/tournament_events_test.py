@@ -2,7 +2,7 @@ import pytest
 from heliclockter import datetime_utc, timedelta
 
 from bracket.database import database
-from bracket.schema import matches
+from bracket.schema import matches, rounds
 from bracket.utils.http import HTTPMethod
 from tests.integration_tests.api.scheduling_test import (
     add_courts,
@@ -158,3 +158,121 @@ async def test_a_non_blocking_event_leaves_the_schedule_alone(
     finally:
         await clear_events_of(tournament_id)
         await clear_schedule_of(tournament_id)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_an_event_that_follows_a_round_starts_when_that_round_is_over(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    tournament_id = auth_context.tournament.id
+
+    try:
+        await add_courts(tournament_id, 2, auth_context)
+        await add_elimination_stage_item(tournament_id, 4, auth_context)
+        await send_auth_request(
+            HTTPMethod.POST, f"tournaments/{tournament_id}/schedule_matches", auth_context, json={}
+        )
+
+        first_round_id = (await database.fetch_all(query=rounds.select().order_by(rounds.c.id)))[0][
+            "id"
+        ]
+        created = await send_tournament_request(
+            HTTPMethod.POST,
+            "events",
+            auth_context,
+            json={
+                "name": "Halftimeshow",
+                "duration_minutes": 30,
+                "blocks_matches": True,
+                "after_round_id": first_round_id,
+            },
+        )
+
+        rows = await database.fetch_all(query=matches.select())
+        end_of_first_round = max(
+            row["start_time"] + timedelta(minutes=row["duration_minutes"])
+            for row in rows
+            if row["round_id"] == first_round_id
+        )
+        listed = await send_tournament_request(HTTPMethod.GET, "events", auth_context, {})
+        assert listed["data"][0]["id"] == created["data"]["id"]
+        assert listed["data"][0]["start_time"] == end_of_first_round.isoformat().replace(
+            "+00:00", "Z"
+        )
+
+        # And the rounds after it wait for the show to be over.
+        for row in rows:
+            if row["round_id"] != first_round_id:
+                assert row["start_time"] >= end_of_first_round + timedelta(minutes=30)
+    finally:
+        await clear_events_of(tournament_id)
+        await clear_schedule_of(tournament_id)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_an_event_that_follows_a_match_moves_along_with_it(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    """
+    The event hangs off the schedule, so re-planning the matches drags it along.
+    """
+    tournament_id = auth_context.tournament.id
+
+    try:
+        await add_courts(tournament_id, 1, auth_context)
+        await add_elimination_stage_item(tournament_id, 4, auth_context)
+        await send_auth_request(
+            HTTPMethod.POST, f"tournaments/{tournament_id}/schedule_matches", auth_context, json={}
+        )
+
+        first_match = min(
+            await database.fetch_all(query=matches.select()), key=lambda row: row["start_time"]
+        )
+        await send_tournament_request(
+            HTTPMethod.POST,
+            "events",
+            auth_context,
+            json={
+                "name": "Siegerehrung",
+                "location": "Hauptbühne",
+                "duration_minutes": 20,
+                "blocks_matches": False,
+                "after_match_id": first_match["id"],
+            },
+        )
+        listed = await send_tournament_request(HTTPMethod.GET, "events", auth_context, {})
+        assert listed["data"][0]["location"] == "Hauptbühne"
+        before = listed["data"][0]["start_time"]
+
+        # Push the whole first round back a day; the event has to follow.
+        second_day = (datetime_utc.now() + timedelta(days=1)).replace(microsecond=0)
+        await send_auth_request(
+            HTTPMethod.PUT,
+            f"tournaments/{tournament_id}/rounds/{first_match['round_id']}",
+            auth_context,
+            json={
+                "name": "Round 01",
+                "is_draft": False,
+                "start_time": second_day.isoformat().replace("+00:00", "Z"),
+            },
+        )
+
+        listed = await send_tournament_request(HTTPMethod.GET, "events", auth_context, {})
+        assert listed["data"][0]["start_time"] > before
+        assert listed["data"][0]["start_time"] >= second_day.isoformat().replace("+00:00", "Z")
+    finally:
+        await clear_events_of(tournament_id)
+        await clear_schedule_of(tournament_id)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_an_event_needs_a_time_or_something_to_follow(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    response = await send_tournament_request(
+        HTTPMethod.POST,
+        "events",
+        auth_context,
+        json={"name": "Ohne Zeitpunkt", "duration_minutes": 30},
+    )
+    assert "start time" in response["detail"]

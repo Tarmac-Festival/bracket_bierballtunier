@@ -1668,6 +1668,14 @@ export type TournamentChangeStatusBody = {
  */
 export type TournamentEvent = {
   /**
+   * After Match Id
+   */
+  after_match_id: number | null;
+  /**
+   * After Round Id
+   */
+  after_round_id: number | null;
+  /**
    * Blocks Matches
    */
   blocks_matches: boolean;
@@ -1688,6 +1696,10 @@ export type TournamentEvent = {
    */
   id: number;
   /**
+   * Location
+   */
+  location: string | null;
+  /**
    * Name
    */
   name: string;
@@ -1706,8 +1718,19 @@ export type TournamentEvent = {
  *
  * Something that happens next to the matches and takes up time: a halftime show, an award
  * ceremony, a break.
+ *
+ * When it follows a round or a single match, its start time is not entered but derived
+ * from the schedule, so it keeps up when the matches move.
  */
 export type TournamentEventBody = {
+  /**
+   * After Match Id
+   */
+  after_match_id: number | null;
+  /**
+   * After Round Id
+   */
+  after_round_id: number | null;
   /**
    * Blocks Matches
    */
@@ -1721,13 +1744,17 @@ export type TournamentEventBody = {
    */
   duration_minutes: number;
   /**
+   * Location
+   */
+  location: string | null;
+  /**
    * Name
    */
   name: string;
   /**
    * Start Time
    */
-  start_time: string;
+  start_time: string | null;
 };
 
 /**

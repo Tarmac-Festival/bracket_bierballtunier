@@ -15,9 +15,13 @@ from bracket.sql.matches import (
     sql_reschedule_match_and_determine_duration_and_margin,
 )
 from bracket.sql.stages import get_full_tournament_details
-from bracket.sql.tournament_events import sql_get_events_of_tournament
+from bracket.sql.tournament_events import (
+    sql_get_events_of_tournament,
+    sql_get_match_end_times,
+    sql_set_event_start_time,
+)
 from bracket.sql.tournaments import sql_get_tournament
-from bracket.utils.id_types import CourtId, MatchId, TournamentId
+from bracket.utils.id_types import CourtId, MatchId, RoundId, TournamentId
 from bracket.utils.types import assert_some
 
 BlockedPeriods = list[tuple[datetime_utc, datetime_utc]]
@@ -218,6 +222,40 @@ async def handle_match_reschedule(
         )
 
 
+async def resolve_anchored_event_times(tournament_id: TournamentId) -> bool:
+    """
+    Gives every event that follows a round or a match the time that round or match ends at.
+    Returns whether any of them moved, so the caller knows to schedule once more.
+    """
+    events = await sql_get_events_of_tournament(tournament_id)
+    if not any(event.is_anchored for event in events):
+        return False
+
+    end_times = await sql_get_match_end_times(tournament_id)
+    end_of_match = {match_id: end_time for match_id, _, end_time in end_times}
+    end_of_round: dict[RoundId, datetime_utc] = {}
+    for _, round_id, end_time in end_times:
+        end_of_round[round_id] = max(end_of_round.get(round_id, end_time), end_time)
+
+    changed = False
+    for event in events:
+        if event.after_match_id is not None:
+            start_time = end_of_match.get(event.after_match_id)
+        elif event.after_round_id is not None:
+            start_time = end_of_round.get(event.after_round_id)
+        else:
+            continue
+
+        # Nothing scheduled to hang off yet; the event keeps the time it has until there is.
+        if start_time is None or start_time == event.start_time:
+            continue
+
+        await sql_set_event_start_time(event.id, start_time)
+        changed = True
+
+    return changed
+
+
 async def reschedule_matches_around_events(tournament_id: TournamentId) -> None:
     """
     Called after an event changed: the matches already have their courts and their order,
@@ -240,12 +278,19 @@ async def update_start_times_of_matches(tournament_id: TournamentId) -> None:
         for match in round_.matches
     }
 
-    blocked_periods = await get_blocked_periods(tournament_id)
+    # An anchored event hangs off the schedule while a blocking event moves it, so the two
+    # are settled by repeating until nothing changes. Every pass recomputes the times from
+    # the tournament start, so repeating is safe. Bounded, in case they never agree.
+    for _ in range(len(await sql_get_events_of_tournament(tournament_id)) + 2):
+        blocked_periods = await get_blocked_periods(tournament_id)
 
-    for court in courts:
-        await reorder_matches_for_court(
-            tournament, scheduled_matches, court.id, round_start_times, blocked_periods
-        )
+        for court in courts:
+            await reorder_matches_for_court(
+                tournament, scheduled_matches, court.id, round_start_times, blocked_periods
+            )
+
+        if not await resolve_anchored_event_times(tournament_id):
+            break
 
 
 def get_scheduled_matches(stages: list[StageWithStageItems]) -> list[MatchPosition]:

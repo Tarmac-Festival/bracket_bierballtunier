@@ -249,6 +249,21 @@ tournament_events = Table(
     Column("duration_minutes", Integer, nullable=False),
     # Whether the matches have to make room for it.
     Column("blocks_matches", Boolean, nullable=False, server_default="true"),
+    Column("location", Text, nullable=True),
+    # An event can hang off the schedule instead of having a fixed time: it then starts
+    # when the round or the match it follows is over. Cleared when that one is deleted.
+    Column(
+        "after_round_id",
+        BigInteger,
+        ForeignKey("rounds.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    Column(
+        "after_match_id",
+        BigInteger,
+        ForeignKey("matches.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
 )
 
 rankings = Table(

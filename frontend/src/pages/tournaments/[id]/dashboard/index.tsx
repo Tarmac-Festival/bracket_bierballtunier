@@ -177,6 +177,11 @@ function EventRow({ event }: { event: TournamentEvent }) {
         <Text fw={700} fz="lg">
           {event.name}
         </Text>
+        {event.location ? (
+          <Text fz="sm" fw={600} c="tarmac.3">
+            📍 {event.location}
+          </Text>
+        ) : null}
         {event.description ? (
           <Text fz="sm" c="dimmed">
             {event.description}

@@ -2981,6 +2981,28 @@
       },
       "TournamentEvent": {
         "properties": {
+          "after_match_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Match Id"
+          },
+          "after_round_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Round Id"
+          },
           "blocks_matches": {
             "default": true,
             "title": "Blocks Matches",
@@ -3013,6 +3035,18 @@
             "title": "Id",
             "type": "integer"
           },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -3032,9 +3066,12 @@
         "required": [
           "name",
           "description",
+          "location",
           "start_time",
           "duration_minutes",
           "blocks_matches",
+          "after_round_id",
+          "after_match_id",
           "created",
           "tournament_id",
           "id"
@@ -3043,8 +3080,30 @@
         "type": "object"
       },
       "TournamentEventBody": {
-        "description": "Something that happens next to the matches and takes up time: a halftime show, an award\nceremony, a break.",
+        "description": "Something that happens next to the matches and takes up time: a halftime show, an award\nceremony, a break.\n\nWhen it follows a round or a single match, its start time is not entered but derived\nfrom the schedule, so it keeps up when the matches move.",
         "properties": {
+          "after_match_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Match Id"
+          },
+          "after_round_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Round Id"
+          },
           "blocks_matches": {
             "default": true,
             "title": "Blocks Matches",
@@ -3068,6 +3127,18 @@
             "title": "Duration Minutes",
             "type": "integer"
           },
+          "location": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -3075,17 +3146,27 @@
             "type": "string"
           },
           "start_time": {
-            "format": "date-time",
-            "title": "Start Time",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
           }
         },
         "required": [
           "name",
           "description",
+          "location",
           "start_time",
           "duration_minutes",
-          "blocks_matches"
+          "blocks_matches",
+          "after_round_id",
+          "after_match_id"
         ],
         "title": "TournamentEventBody",
         "type": "object"
