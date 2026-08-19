@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import NamedTuple
 
-from heliclockter import timedelta
+from heliclockter import datetime_utc, timedelta
 
 from bracket.models.db.match import (
     MatchRescheduleBody,
@@ -48,6 +48,11 @@ async def schedule_all_unscheduled_matches(
             round_can_start_from = stage_start_time
 
             for round_ in sorted(stage_item.rounds, key=lambda r: r.id):
+                # A round with its own start time pushes everything after it back too, which
+                # is how a tournament gets spread over several days.
+                if round_.start_time is not None:
+                    round_can_start_from = max(round_can_start_from, round_.start_time)
+
                 next_round_can_start_from = round_can_start_from
 
                 for match in round_.matches:
@@ -93,6 +98,7 @@ async def reorder_matches_for_court(
     tournament: Tournament,
     scheduled_matches: list[MatchPosition],
     court_id: CourtId,
+    round_start_times: dict[MatchId, datetime_utc] | None = None,
 ) -> None:
     matches_this_court = sorted(
         (match_pos for match_pos in scheduled_matches if match_pos.match.court_id == court_id),
@@ -101,6 +107,12 @@ async def reorder_matches_for_court(
 
     last_start_time = tournament.start_time
     for i, match_pos in enumerate(matches_this_court):
+        # A round with its own start time is not pulled forward into the gap left by the
+        # matches before it, which is what keeps a multi-day schedule on its days.
+        round_start_time = (round_start_times or {}).get(match_pos.match.id)
+        if round_start_time is not None:
+            last_start_time = max(last_start_time, round_start_time)
+
         await sql_reschedule_match_and_determine_duration_and_margin(
             court_id,
             last_start_time,
@@ -157,9 +169,17 @@ async def update_start_times_of_matches(tournament_id: TournamentId) -> None:
     tournament = await sql_get_tournament(tournament_id)
     courts = await get_all_courts_in_tournament(tournament_id)
     scheduled_matches = get_scheduled_matches(stages)
+    round_start_times = {
+        match.id: round_.start_time
+        for stage in stages
+        for stage_item in stage.stage_items
+        for round_ in stage_item.rounds
+        if round_.start_time is not None
+        for match in round_.matches
+    }
 
     for court in courts:
-        await reorder_matches_for_court(tournament, scheduled_matches, court.id)
+        await reorder_matches_for_court(tournament, scheduled_matches, court.id, round_start_times)
 
 
 def get_scheduled_matches(stages: list[StageWithStageItems]) -> list[MatchPosition]:

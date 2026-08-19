@@ -1,6 +1,8 @@
 import { ActionIcon, Button, Modal, TextInput, Title, UnstyledButton } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconPencil } from '@tabler/icons-react';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LuConstruction } from 'react-icons/lu';
@@ -55,6 +57,7 @@ export default function RoundModal({
   const form = useForm({
     initialValues: {
       name: round == null ? '' : round.name,
+      start_time: round?.start_time != null ? dayjs(round.start_time) : null,
     },
 
     validate: {
@@ -67,7 +70,13 @@ export default function RoundModal({
       <Modal opened={opened} onClose={() => setOpened(false)} title={t('edit_round')}>
         <form
           onSubmit={form.onSubmit(async (values) => {
-            await updateRound(tournamentData.id, round.id, values.name, round.is_draft);
+            await updateRound(
+              tournamentData.id,
+              round.id,
+              values.name,
+              round.is_draft,
+              values.start_time,
+            );
             await swrStagesResponse.mutate();
             setOpened(false);
           })}
@@ -77,6 +86,14 @@ export default function RoundModal({
             label={t('name_input_label')}
             placeholder={t('round_name_input_placeholder')}
             {...form.getInputProps('name')}
+          />
+          <DateTimePicker
+            clearable
+            label={t('round_start_time_label')}
+            description={t('round_start_time_description')}
+            placeholder={t('round_start_time_placeholder')}
+            mt="md"
+            {...form.getInputProps('start_time')}
           />
           <Button fullWidth mt="1rem" color="green" type="submit">
             {t('save_button')}
@@ -90,7 +107,7 @@ export default function RoundModal({
           disabled={round.is_draft}
           leftSection={<LuConstruction />}
           onClick={async () => {
-            await updateRound(tournamentData.id, round.id, round.name, true);
+            await updateRound(tournamentData.id, round.id, round.name, true, round.start_time);
             await swrStagesResponse.mutate();
             if (swrUpcomingMatchesResponse != null) await swrUpcomingMatchesResponse.mutate();
             setOpened(false);

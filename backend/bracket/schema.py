@@ -113,6 +113,8 @@ rounds = Table(
     Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
     Column("is_draft", Boolean, nullable=False),
     Column("stage_item_id", BigInteger, ForeignKey("stage_items.id"), nullable=False),
+    # Earliest kick-off for this round, used to spread a tournament over several days.
+    Column("start_time", DateTimeTZ, nullable=True),
 )
 
 

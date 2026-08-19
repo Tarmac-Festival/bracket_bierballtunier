@@ -800,6 +800,10 @@ export type RoundUpdateBody = {
    * Name
    */
   name: string;
+  /**
+   * Start Time
+   */
+  start_time: string | null;
 };
 
 /**
@@ -830,6 +834,10 @@ export type RoundWithMatches = {
    * Stage Item Id
    */
   stage_item_id: number;
+  /**
+   * Start Time
+   */
+  start_time: string | null;
 };
 
 /**

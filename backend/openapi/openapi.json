@@ -1511,11 +1511,24 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
           }
         },
         "required": [
           "name",
-          "is_draft"
+          "is_draft",
+          "start_time"
         ],
         "title": "RoundUpdateBody",
         "type": "object"
@@ -1556,6 +1569,18 @@
           "stage_item_id": {
             "title": "Stage Item Id",
             "type": "integer"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
           }
         },
         "required": [
@@ -1563,6 +1588,7 @@
           "stage_item_id",
           "is_draft",
           "name",
+          "start_time",
           "id",
           "matches"
         ],

@@ -1,4 +1,4 @@
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { createAxios, handleRequestError } from './adapter';
 
 export async function createRound(tournament_id: number, stage_item_id: number) {
@@ -20,9 +20,14 @@ export async function updateRound(
   round_id: number,
   name: string,
   is_draft: boolean,
+  start_time?: Dayjs | Date | string | null,
 ) {
   return createAxios()
-    .put(`tournaments/${tournament_id}/rounds/${round_id}`, { name, is_draft })
+    .put(`tournaments/${tournament_id}/rounds/${round_id}`, {
+      name,
+      is_draft,
+      start_time: start_time == null || start_time === '' ? null : dayjs(start_time).toISOString(),
+    })
     .catch((response: any) => handleRequestError(response));
 }
 
