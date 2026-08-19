@@ -23,22 +23,28 @@
 }
 
 .inner {
-  @media (min-width: 25rem) {
-    display: flex;
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: rem(8px) rem(16px);
   margin: auto;
   height: 100%;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Let the title give way to the navigation before it gets clipped. */
+.titleButton {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .links {
-  min-width: 11rem;
-  flex-direction: column;
-  justify-content: space-between;
+  flex: 0 0 auto;
 }
 
 .mainLinks {
+  flex-wrap: wrap;
+  justify-content: flex-end;
   margin-right: calc(var(--mantine-spacing-sm) * -1);
 }
 
@@ -47,7 +53,8 @@
   font-size: var(--mantine-font-size-sm);
   letter-spacing: rem(1px);
   color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
-  padding: rem(7px) var(--mantine-spacing-sm);
+  padding: rem(7px) var(--mantine-spacing-xs);
+  white-space: nowrap;
   font-weight: 400;
   border-bottom: rem(2px) solid transparent;
   text-decoration: none;
@@ -70,14 +77,11 @@
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: rem(1px);
-  font-size: rem(30px);
-  line-height: 1.1;
+  /* Shrinks with the viewport so long tournament names stay on one line. */
+  font-size: clamp(rem(18px), 2.4vw, rem(30px));
+  line-height: 1.15;
   background: linear-gradient(90deg, var(--mantine-color-white) 30%, var(--tarmac-green) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-
-  @media (max-width: $mantine-breakpoint-xs) {
-    font-size: rem(22px);
-  }
 }
