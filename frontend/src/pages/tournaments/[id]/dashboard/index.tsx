@@ -147,7 +147,8 @@ export function Schedule({
     .sort(
       (m1: any, m2: any) =>
         compareDateTime(m1.match.start_time, m2.match.start_time) ||
-        m1.match.court?.name.localeCompare(m2.match.court?.name),
+        // Numeric, so that "Spielfeld 10" doesn't sort before "Spielfeld 2".
+        m1.match.court?.name.localeCompare(m2.match.court?.name, undefined, { numeric: true }),
     );
 
   const rows: React.JSX.Element[] = [];
