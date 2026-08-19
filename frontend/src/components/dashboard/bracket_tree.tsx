@@ -22,6 +22,7 @@ type Metrics = {
   // Before the first round or after the last one nothing competes for the space, so the
   // band there is a touch wider and set a size up.
   edgeEventWidth: number;
+  rowFontSize: number;
 };
 
 const WIDE: Metrics = {
@@ -33,19 +34,24 @@ const WIDE: Metrics = {
   dayLine: 20,
   eventWidth: 46,
   edgeEventWidth: 62,
+  rowFontSize: 16,
 };
 
-// On a phone the bracket is swiped through sideways, so everything is drawn tighter to
-// get more than a column and a half on screen at a time.
+// On a phone the bracket is swiped through sideways, so it is drawn narrower to get more
+// than a column and a half on screen at a time. The boxes keep their height: two team
+// names and the court above them need it whatever the width.
 const COMPACT: Metrics = {
   boxWidth: 168,
-  boxHeight: 70,
+  // A few points of slack: the exact height of the three lines depends on how the phone
+  // renders the font, and the box clips what does not fit.
+  boxHeight: 86,
   columnGap: 34,
   siblingGap: 14,
   roundHeader: 30,
   dayLine: 18,
   eventWidth: 38,
   edgeEventWidth: 50,
+  rowFontSize: 14,
 };
 
 type PositionedMatch = {
@@ -300,6 +306,10 @@ function MatchBox({ match, m }: { match: PositionedMatch; m: Metrics }) {
     justifyContent: 'space-between',
     gap: '0.5rem',
     padding: '0.25rem 0.5rem',
+    // Sized so that the subtitle and both teams fit inside the box: the box clips, and a
+    // team name cut in half is worse than a smaller one.
+    fontSize: m.rowFontSize,
+    lineHeight: 1.3,
     fontWeight: won ? 700 : 400,
     color: won ? 'var(--tarmac-green)' : undefined,
   });

@@ -53,7 +53,7 @@ export default function DashboardBracketPage() {
   return (
     <>
       <DoubleHeader tournamentData={tournamentDataFull} />
-      <Container fluid mt="1rem" px={{ base: "xs", sm: "md" }}>
+      <Container fluid mt="1rem" px={{ base: 'xs', sm: 'md' }}>
         {stageItems.length < 1 ? (
           <NoContent title={t('no_matches_title')} description="" icon={<AiOutlineHourglass />} />
         ) : (

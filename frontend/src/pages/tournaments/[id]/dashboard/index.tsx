@@ -59,7 +59,6 @@ function ScheduleRow({
       radius="md"
       withBorder
       mt="md"
-      pt="0rem"
       style={{ borderLeft: '4px solid var(--tarmac-green)' }}
     >
       <Card.Section withBorder>
@@ -129,7 +128,6 @@ function EventRow({ event }: { event: TournamentEvent }) {
       radius="md"
       withBorder
       mt="md"
-      pt="0rem"
       style={{ borderLeft: '4px solid var(--tarmac-purple-light)' }}
     >
       <Card.Section withBorder>
