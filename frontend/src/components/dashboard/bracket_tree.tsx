@@ -93,7 +93,13 @@ function layOutRounds(
   events: TournamentEvent[],
   emptyLabel: string,
   m: Metrics,
-): { matches: PositionedMatch[]; columns: Column[]; width: number; height: number } {
+): {
+  matches: PositionedMatch[];
+  columns: Column[];
+  dayDividers: number[];
+  width: number;
+  height: number;
+} {
   const rounds = [...stageItem.rounds]
     .sort((r1, r2) => r1.name.localeCompare(r2.name, undefined, { numeric: true }))
     .filter((round) => round.matches.length > 0);
@@ -180,6 +186,29 @@ function layOutRounds(
     };
   });
   const width = Math.max(nextX - m.columnGap, 0);
+
+  // Where the tournament crosses into the next day, drawn in the gap between the two
+  // columns it happens between. The heading above a round names its day, but a night that
+  // ends and one that begins look the same in a row of boxes without a mark between them.
+  const dayOfColumn = ordered.map((entry) =>
+    entry.column.kind === 'round'
+      ? (roundStartTimes[
+          rounds.findIndex((round) => `round-${round.id}` === entry.column.key)
+        ][0] ?? null)
+      : entry.column.event.start_time,
+  );
+  const dayDividers = columns
+    .map((column, index) => {
+      const previous = dayOfColumn[index - 1];
+      const current = dayOfColumn[index];
+      const crossesIntoANewDay =
+        index > 0 &&
+        previous != null &&
+        current != null &&
+        formatDay(previous) !== formatDay(current);
+      return crossesIntoANewDay ? column.x - m.columnGap / 2 : null;
+    })
+    .filter((x): x is number => x != null);
   const roundX = columns.filter((column) => column.kind === 'round').map((column) => column.x);
 
   const matchById = new Map<number, any>();
@@ -267,7 +296,7 @@ function layOutRounds(
     });
   });
 
-  return { matches: result, columns, width, height };
+  return { matches: result, columns, dayDividers, width, height };
 }
 
 function Connectors({ matches, m }: { matches: PositionedMatch[]; m: Metrics }) {
@@ -423,7 +452,7 @@ export function BracketTree({
 }) {
   const { t } = useTranslation();
   const m = useMediaQuery('(max-width: 48em)') ? COMPACT : WIDE;
-  const { matches, columns, width, height } = layOutRounds(
+  const { matches, columns, dayDividers, width, height } = layOutRounds(
     stageItem,
     stageItemsLookup,
     events,
@@ -451,6 +480,21 @@ export function BracketTree({
           margin: '0 auto',
         }}
       >
+        {dayDividers.map((x) => (
+          <div
+            key={`day-${x}`}
+            style={{
+              position: 'absolute',
+              left: x - 1,
+              top: 0,
+              width: 2,
+              height: height + headerHeight,
+              borderLeft: '2px dashed var(--tarmac-green)',
+              opacity: 0.7,
+            }}
+          />
+        ))}
+
         {columns.map((column) =>
           column.kind === 'round' ? (
             <div
