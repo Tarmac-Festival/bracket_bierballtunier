@@ -33,6 +33,8 @@ export async function registerTeam(
   player_names: string[],
   password?: string,
   accepted_terms?: string[],
+  contact_name?: string,
+  contact_phone?: string,
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/register`, {
@@ -40,6 +42,8 @@ export async function registerTeam(
       player_names,
       password: password || null,
       accepted_terms: accepted_terms ?? [],
+      contact_name: contact_name || null,
+      contact_phone: contact_phone || null,
     }),
   );
 }
@@ -76,12 +80,16 @@ export async function updateTeam(
   name: string,
   active: boolean,
   player_ids: string[],
+  contact_name?: string | null,
+  contact_phone?: string | null,
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.put(`tournaments/${tournament_id}/teams/${team_id}`, {
       name,
       active,
       player_ids,
+      contact_name: contact_name || null,
+      contact_phone: contact_phone || null,
     }),
   );
 }

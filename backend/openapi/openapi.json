@@ -268,6 +268,30 @@
             "title": "Active",
             "type": "boolean"
           },
+          "contact_name": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Name"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
+          },
           "created": {
             "format": "date-time",
             "title": "Created",
@@ -342,6 +366,8 @@
           "draws",
           "losses",
           "logo_path",
+          "contact_name",
+          "contact_phone",
           "id",
           "players"
         ],
@@ -2409,6 +2435,30 @@
             "title": "Active",
             "type": "boolean"
           },
+          "contact_name": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Name"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
+          },
           "created": {
             "format": "date-time",
             "title": "Created",
@@ -2476,6 +2526,8 @@
           "draws",
           "losses",
           "logo_path",
+          "contact_name",
+          "contact_phone",
           "id"
         ],
         "title": "Team",
@@ -2486,6 +2538,30 @@
           "active": {
             "title": "Active",
             "type": "boolean"
+          },
+          "contact_name": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Name"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
           },
           "name": {
             "maxLength": 30,
@@ -2505,7 +2581,9 @@
         "required": [
           "name",
           "active",
-          "player_ids"
+          "player_ids",
+          "contact_name",
+          "contact_phone"
         ],
         "title": "TeamBody",
         "type": "object"
@@ -2565,6 +2643,30 @@
             "title": "Accepted Terms",
             "type": "array"
           },
+          "contact_name": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Name"
+          },
+          "contact_phone": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Phone"
+          },
           "name": {
             "maxLength": 30,
             "minLength": 1,
@@ -2596,7 +2698,9 @@
           "name",
           "player_names",
           "password",
-          "accepted_terms"
+          "accepted_terms",
+          "contact_name",
+          "contact_phone"
         ],
         "title": "TeamRegistrationBody",
         "type": "object"
@@ -2740,6 +2844,11 @@
             "title": "Players Can Be In Multiple Teams",
             "type": "boolean"
           },
+          "registration_contact_required": {
+            "default": false,
+            "title": "Registration Contact Required",
+            "type": "boolean"
+          },
           "registration_deadline": {
             "anyOf": [
               {
@@ -2831,6 +2940,7 @@
           "registration_enabled",
           "registration_info",
           "registration_terms",
+          "registration_contact_required",
           "registration_deadline",
           "team_size_min",
           "team_size_max",
@@ -2895,6 +3005,11 @@
           },
           "players_can_be_in_multiple_teams": {
             "title": "Players Can Be In Multiple Teams",
+            "type": "boolean"
+          },
+          "registration_contact_required": {
+            "default": false,
+            "title": "Registration Contact Required",
             "type": "boolean"
           },
           "registration_deadline": {
@@ -2983,6 +3098,7 @@
           "registration_enabled",
           "registration_info",
           "registration_terms",
+          "registration_contact_required",
           "registration_password",
           "remove_registration_password",
           "registration_deadline",
@@ -3314,6 +3430,11 @@
             "title": "Players Can Be In Multiple Teams",
             "type": "boolean"
           },
+          "registration_contact_required": {
+            "default": false,
+            "title": "Registration Contact Required",
+            "type": "boolean"
+          },
           "registration_deadline": {
             "anyOf": [
               {
@@ -3400,6 +3521,7 @@
           "registration_enabled",
           "registration_info",
           "registration_terms",
+          "registration_contact_required",
           "registration_password",
           "remove_registration_password",
           "registration_deadline",

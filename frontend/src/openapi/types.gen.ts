@@ -170,6 +170,14 @@ export type FullTeamWithPlayers = {
    */
   active: boolean;
   /**
+   * Contact Name
+   */
+  contact_name: string | null;
+  /**
+   * Contact Phone
+   */
+  contact_phone: string | null;
+  /**
    * Created
    */
   created: string;
@@ -1340,6 +1348,14 @@ export type Team = {
    */
   active: boolean;
   /**
+   * Contact Name
+   */
+  contact_name: string | null;
+  /**
+   * Contact Phone
+   */
+  contact_phone: string | null;
+  /**
    * Created
    */
   created: string;
@@ -1390,6 +1406,14 @@ export type TeamBody = {
    */
   active: boolean;
   /**
+   * Contact Name
+   */
+  contact_name: string | null;
+  /**
+   * Contact Phone
+   */
+  contact_phone: string | null;
+  /**
    * Name
    */
   name: string;
@@ -1435,6 +1459,14 @@ export type TeamRegistrationBody = {
    * Accepted Terms
    */
   accepted_terms: Array<string>;
+  /**
+   * Contact Name
+   */
+  contact_name: string | null;
+  /**
+   * Contact Phone
+   */
+  contact_phone: string | null;
   /**
    * Name
    */
@@ -1548,6 +1580,10 @@ export type Tournament = {
    */
   players_can_be_in_multiple_teams: boolean;
   /**
+   * Registration Contact Required
+   */
+  registration_contact_required: boolean;
+  /**
    * Registration Deadline
    */
   registration_deadline: string | null;
@@ -1626,6 +1662,10 @@ export type TournamentBody = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Registration Contact Required
+   */
+  registration_contact_required: boolean;
   /**
    * Registration Deadline
    */
@@ -1839,6 +1879,10 @@ export type TournamentUpdateBody = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Registration Contact Required
+   */
+  registration_contact_required: boolean;
   /**
    * Registration Deadline
    */
@@ -2062,6 +2106,10 @@ export type TournamentWritable = {
    * Players Can Be In Multiple Teams
    */
   players_can_be_in_multiple_teams: boolean;
+  /**
+   * Registration Contact Required
+   */
+  registration_contact_required: boolean;
   /**
    * Registration Deadline
    */

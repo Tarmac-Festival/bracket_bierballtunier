@@ -1,4 +1,4 @@
-import { Badge, Center, Pagination, Table } from '@mantine/core';
+import { Anchor, Badge, Center, Pagination, Table } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { SWRResponse } from 'swr';
 
@@ -54,6 +54,16 @@ export default function TeamsTable({
           <PlayerList team={team} />
         </Table.Td>
         <Table.Td>
+          {team.contact_name || team.contact_phone ? (
+            <>
+              <div>{team.contact_name}</div>
+              <Anchor href={`tel:${team.contact_phone}`} fz="sm">
+                {team.contact_phone}
+              </Anchor>
+            </>
+          ) : null}
+        </Table.Td>
+        <Table.Td>
           <DateTime datetime={team.created} />
         </Table.Td>
         <Table.Td>
@@ -89,7 +99,7 @@ export default function TeamsTable({
 
   return (
     <>
-      <TableLayout miw={850}>
+      <TableLayout miw={1000}>
         <Table.Thead>
           <Table.Tr>
             <ThSortable state={tableState} field="active">
@@ -99,6 +109,7 @@ export default function TeamsTable({
               {t('name_table_header')}
             </ThSortable>
             <ThNotSortable>{t('members_table_header')}</ThNotSortable>
+            <ThNotSortable>{t('contact_table_header')}</ThNotSortable>
             <ThSortable state={tableState} field="created">
               {t('created')}
             </ThSortable>

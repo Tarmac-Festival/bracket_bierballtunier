@@ -29,6 +29,7 @@ tournaments = Table(
     Column("registration_enabled", Boolean, nullable=False, server_default="f"),
     Column("registration_info", Text, nullable=True),
     Column("registration_terms", Text, nullable=True),
+    Column("registration_contact_required", Boolean, nullable=False, server_default="false"),
     Column("registration_password", String, nullable=True),
     Column("registration_deadline", DateTimeTZ, nullable=True),
     Column("team_size_min", Integer, nullable=False, server_default="1"),
@@ -166,6 +167,9 @@ teams = Table(
     Column("draws", Integer, nullable=False, server_default="0"),
     Column("losses", Integer, nullable=False, server_default="0"),
     Column("logo_path", String, nullable=True),
+    # Who to call when a team is missing from the pitch.
+    Column("contact_name", Text, nullable=True),
+    Column("contact_phone", Text, nullable=True),
 )
 
 players = Table(

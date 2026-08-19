@@ -101,6 +101,7 @@ async def sql_update_tournament(
             registration_enabled = :registration_enabled,
             registration_info = :registration_info,
             registration_terms = :registration_terms,
+            registration_contact_required = :registration_contact_required,
             registration_password = CASE
                 WHEN CAST(:remove_registration_password AS BOOLEAN) THEN NULL
                 WHEN CAST(:registration_password AS TEXT) IS NOT NULL
@@ -153,6 +154,7 @@ async def sql_create_tournament(tournament: TournamentBody) -> TournamentId:
             registration_enabled,
             registration_info,
             registration_terms,
+            registration_contact_required,
             registration_password,
             registration_deadline,
             team_size_min,
@@ -174,6 +176,7 @@ async def sql_create_tournament(tournament: TournamentBody) -> TournamentId:
             :registration_enabled,
             :registration_info,
             :registration_terms,
+            :registration_contact_required,
             :registration_password,
             :registration_deadline,
             :team_size_min,

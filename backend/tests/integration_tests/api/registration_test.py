@@ -50,6 +50,7 @@ async def tournament_with_registration(
     team_size_max: int = 4,
     password: str | None = None,
     terms: str | None = None,
+    contact_required: bool = False,
 ) -> AsyncIterator[Tournament]:
     """
     Every test gets its own tournament, so that changing the registration settings can't
@@ -64,6 +65,7 @@ async def tournament_with_registration(
                 "registration_deadline": deadline,
                 "registration_password": password,
                 "registration_terms": terms,
+                "registration_contact_required": contact_required,
                 "team_size_min": team_size_min,
                 "team_size_max": team_size_max,
             }
@@ -78,6 +80,8 @@ async def register_team(
     player_names: list[str],
     password: str | None = None,
     accepted_terms: list[str] | None = None,
+    contact_name: str | None = None,
+    contact_phone: str | None = None,
 ) -> dict:
     return await send_request(
         HTTPMethod.POST,
@@ -87,6 +91,8 @@ async def register_team(
             "player_names": player_names,
             "password": password,
             "accepted_terms": accepted_terms or [],
+            "contact_name": contact_name,
+            "contact_phone": contact_phone,
         },
     )
 
@@ -446,6 +452,53 @@ async def test_registration_without_confirmations_stays_as_it_was(
         response = await register_team(tournament, "Ohne Bedingungen", ["Ann"])
 
         assert response["data"]["name"] == "Ohne Bedingungen"
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_a_team_can_register_with_a_contact_person(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context) as tournament:
+        response = await register_team(
+            tournament,
+            "Mit Kontakt",
+            ["Ann"],
+            contact_name="Peter Durstig",
+            contact_phone="0170 1234567",
+        )
+
+        assert response["data"]["contact_name"] == "Peter Durstig"
+        assert response["data"]["contact_phone"] == "0170 1234567"
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_the_contact_person_can_be_demanded(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, contact_required=True) as tournament:
+        response = await register_team(tournament, "Ohne Kontakt", ["Ann"])
+        assert "contact person" in response["detail"]
+        await assert_row_count_and_clear(teams, 0)
+
+        # A name without a number is not enough either.
+        response = await register_team(tournament, "Halb", ["Ann"], contact_name="Peter Durstig")
+        assert "contact person" in response["detail"]
+        await assert_row_count_and_clear(teams, 0)
+
+        response = await register_team(
+            tournament,
+            "Vollständig",
+            ["Ann"],
+            contact_name="Peter Durstig",
+            contact_phone="0170 1234567",
+        )
+        assert response["data"]["name"] == "Vollständig"
         await assert_row_count_and_clear(players_x_teams, 1)
         await assert_row_count_and_clear(players, 1)
         await assert_row_count_and_clear(teams, 1)

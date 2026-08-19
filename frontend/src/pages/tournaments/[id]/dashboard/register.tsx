@@ -41,6 +41,7 @@ function RegistrationForm({
   maxSize,
   passwordRequired,
   terms,
+  contactRequired,
   onSuccess,
 }: {
   tournamentId: number;
@@ -49,6 +50,7 @@ function RegistrationForm({
   passwordRequired: boolean;
   // One confirmation the team has to tick off per entry.
   terms: string[];
+  contactRequired: boolean;
   onSuccess: (name: string) => void;
 }) {
   const { t } = useTranslation();
@@ -58,6 +60,8 @@ function RegistrationForm({
       password: '',
       player_names: Array.from({ length: minSize }, () => ''),
       accepted_terms: terms.map(() => false),
+      contact_name: '',
+      contact_phone: '',
     },
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
@@ -67,6 +71,10 @@ function RegistrationForm({
         value.every((name) => name.trim().length > 0) ? null : t('player_name_required_validation'),
       accepted_terms: (value: boolean[]) =>
         value.every(Boolean) ? null : t('registration_terms_validation'),
+      contact_name: (value: string) =>
+        !contactRequired || value.trim().length > 0 ? null : t('contact_name_validation'),
+      contact_phone: (value: string) =>
+        !contactRequired || value.trim().length > 0 ? null : t('contact_phone_validation'),
     },
   });
 
@@ -91,6 +99,8 @@ function RegistrationForm({
           values.player_names,
           values.password,
           terms,
+          values.contact_name,
+          values.contact_phone,
         );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
@@ -136,6 +146,28 @@ function RegistrationForm({
           {t('add_player_button')}
         </Button>
       ) : null}
+
+      <Text fz="sm" mt="lg">
+        {t('contact_section_label')}
+      </Text>
+      <Text fz="xs" c="dimmed">
+        {contactRequired ? t('contact_required_hint') : t('contact_optional_hint')}
+      </Text>
+      <Group grow mt="xs" align="start">
+        <TextInput
+          withAsterisk={contactRequired}
+          placeholder={t('contact_name_placeholder')}
+          autoComplete="off"
+          {...form.getInputProps('contact_name')}
+        />
+        <TextInput
+          withAsterisk={contactRequired}
+          placeholder={t('contact_phone_placeholder')}
+          inputMode="tel"
+          autoComplete="off"
+          {...form.getInputProps('contact_phone')}
+        />
+      </Group>
 
       {passwordRequired ? (
         <PasswordInput
@@ -224,6 +256,7 @@ export default function DashboardRegisterPage() {
               maxSize={tournament.team_size_max}
               passwordRequired={tournament.registration_password_required}
               terms={registrationTerms(tournament)}
+              contactRequired={tournament.registration_contact_required}
               onSuccess={setSuccess}
             />
           )}

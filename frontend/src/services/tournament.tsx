@@ -36,6 +36,7 @@ export async function createTournament(
   team_size_max?: number | string | null,
   max_teams?: number | string | null,
   registration_terms?: string | null,
+  registration_contact_required?: boolean,
 ) {
   return createAxios()
     .post('tournaments', {
@@ -58,6 +59,7 @@ export async function createTournament(
       team_size_max: numberOrDefault(team_size_max, 8),
       max_teams: optionalNumber(max_teams),
       registration_terms,
+      registration_contact_required: registration_contact_required ?? false,
     })
     .catch((response: any) => handleRequestError(response));
 }
@@ -95,6 +97,7 @@ export async function updateTournament(
   team_size_max?: number | string | null,
   max_teams?: number | string | null,
   registration_terms?: string | null,
+  registration_contact_required?: boolean,
 ) {
   return createAxios()
     .put(`tournaments/${tournament_id}`, {
@@ -117,6 +120,7 @@ export async function updateTournament(
       team_size_max: numberOrDefault(team_size_max, 8),
       max_teams: optionalNumber(max_teams),
       registration_terms,
+      registration_contact_required: registration_contact_required ?? false,
     })
     .catch((response: any) => handleRequestError(response));
 }

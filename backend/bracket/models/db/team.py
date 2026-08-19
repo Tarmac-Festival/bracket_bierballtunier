@@ -24,6 +24,9 @@ class TeamInsertable(BaseModelORM):
     draws: int = 0
     losses: int = 0
     logo_path: str | None = None
+    # Optional, so a team can register without one unless the tournament insists.
+    contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
+    contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
 
 
 class Team(TeamInsertable):
@@ -40,6 +43,9 @@ class TeamWithPlayers(BaseModel):
     losses: int = 0
     name: str
     logo_path: str | None = None
+    # Optional, so a team can register without one unless the tournament insists.
+    contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
+    contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
 
     @property
     def player_ids(self) -> list[PlayerId]:
@@ -65,6 +71,9 @@ class TeamBody(BaseModelORM):
     name: Annotated[str, StringConstraints(min_length=1, max_length=30)]
     active: bool
     player_ids: set[PlayerId]
+    # Optional, so a team can register without one unless the tournament insists.
+    contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
+    contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
 
 
 class TeamMultiBody(BaseModelORM):
@@ -78,6 +87,9 @@ class TeamRegistrationBody(BaseModelORM):
     password: str | None = None
     # The confirmations the team ticked off, sent back as the text that was shown to them.
     accepted_terms: list[str] = Field(default_factory=list)
+    # Optional, so a team can register without one unless the tournament insists.
+    contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
+    contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
 
 
 class TeamMergeBody(BaseModelORM):

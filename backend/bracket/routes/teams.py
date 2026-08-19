@@ -423,6 +423,14 @@ async def register_team(
             detail=f"Please confirm: {missing[0]}",
         )
 
+    if tournament.registration_contact_required and not (
+        (body.contact_name or "").strip() and (body.contact_phone or "").strip()
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="This tournament asks every team for a contact person and phone number",
+        )
+
     team_size = len(body.player_names)
     if not (tournament.team_size_min <= team_size <= tournament.team_size_max):
         raise HTTPException(
@@ -439,6 +447,8 @@ async def register_team(
                 active=True,
                 created=datetime_utc.now(),
                 tournament_id=tournament_id,
+                contact_name=body.contact_name,
+                contact_phone=body.contact_phone,
             ).model_dump(),
         )
 

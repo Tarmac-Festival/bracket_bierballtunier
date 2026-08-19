@@ -138,6 +138,7 @@ function GeneralTournamentForm({
       registration_enabled: tournament.registration_enabled,
       registration_info: tournament.registration_info || '',
       registration_terms: tournament.registration_terms || '',
+      registration_contact_required: tournament.registration_contact_required,
       registration_password: '',
       remove_registration_password: false,
       registration_deadline: tournament.registration_deadline
@@ -193,6 +194,7 @@ function GeneralTournamentForm({
           values.team_size_max,
           values.max_teams,
           values.registration_terms,
+          values.registration_contact_required,
         );
 
         await swrTournamentResponse.mutate();
@@ -316,6 +318,13 @@ function GeneralTournamentForm({
           minRows={3}
           autosize
           {...form.getInputProps('registration_terms')}
+        />
+
+        <Checkbox
+          mt="lg"
+          label={t('registration_contact_required_label')}
+          description={t('registration_contact_required_description')}
+          {...form.getInputProps('registration_contact_required', { type: 'checkbox' })}
         />
 
         <Text fz="sm" mt="lg">
