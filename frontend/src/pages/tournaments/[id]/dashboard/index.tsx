@@ -63,33 +63,15 @@ function ScheduleRow({
       style={{ borderLeft: '4px solid var(--tarmac-green)' }}
     >
       <Card.Section withBorder>
-        <Grid pt="0.75rem" pb="0.5rem">
-          <Grid.Col mb="0rem" span={4}>
-            <Text pl="sm" mt="sm" fw={800}>
-              {data.match.court.name}
-            </Text>
-          </Grid.Col>
-          <Grid.Col mb="0rem" span={4}>
-            <Center>
-              <Text mt="sm" fw={800}>
-                {data.match.start_time != null ? <Time datetime={data.match.start_time} /> : null}
-              </Text>
-            </Center>
-          </Grid.Col>
-          <Grid.Col mb="0rem" span={4}>
-            <Flex justify="right">
-              <Badge
-                color={stringToColour(`${data.stageItem.id}`)}
-                variant="outline"
-                mr="md"
-                mt="0.8rem"
-                size="md"
-              >
-                {data.stageItem.name}
-              </Badge>
-            </Flex>
-          </Grid.Col>
-        </Grid>
+        <Group justify="space-between" gap="xs" px="sm" py="0.6rem" wrap="wrap">
+          <Text fw={800}>{data.match.court.name}</Text>
+          <Text fw={800}>
+            {data.match.start_time != null ? <Time datetime={data.match.start_time} /> : null}
+          </Text>
+          <Badge color={stringToColour(`${data.stageItem.id}`)} variant="outline" size="md">
+            {data.stageItem.name}
+          </Badge>
+        </Group>
       </Card.Section>
       <Stack pt="sm">
         <Grid>
@@ -151,27 +133,17 @@ function EventRow({ event }: { event: TournamentEvent }) {
       style={{ borderLeft: '4px solid var(--tarmac-purple-light)' }}
     >
       <Card.Section withBorder>
-        <Grid pt="0.75rem" pb="0.5rem">
-          <Grid.Col mb="0rem" span={4}>
-            <Text pl="sm" mt="sm" fw={800} tt="uppercase" c="tarmac.3">
-              {t('event_label')}
-            </Text>
-          </Grid.Col>
-          <Grid.Col mb="0rem" span={4}>
-            <Center>
-              <Text mt="sm" fw={800}>
-                <Time datetime={event.start_time} />
-              </Text>
-            </Center>
-          </Grid.Col>
-          <Grid.Col mb="0rem" span={4}>
-            <Flex justify="right">
-              <Badge color="tarmac.3" variant="outline" mr="md" mt="0.8rem" size="md">
-                {t('event_duration_summary', { minutes: event.duration_minutes })}
-              </Badge>
-            </Flex>
-          </Grid.Col>
-        </Grid>
+        <Group justify="space-between" gap="xs" px="sm" py="0.6rem" wrap="wrap">
+          <Text fw={800} tt="uppercase" c="tarmac.3">
+            {t('event_label')}
+          </Text>
+          <Text fw={800}>
+            <Time datetime={event.start_time} />
+          </Text>
+          <Badge color="tarmac.3" variant="outline" size="md">
+            {t('event_duration_summary', { minutes: event.duration_minutes })}
+          </Badge>
+        </Group>
       </Card.Section>
       <Stack pt="sm" gap="0.25rem">
         <Text fw={700} fz="lg">

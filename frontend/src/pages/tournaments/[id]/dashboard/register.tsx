@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Container,
+  Grid,
   Group,
   Paper,
   PasswordInput,
@@ -112,6 +113,7 @@ function RegistrationForm({
       </Title>
       <TextInput
         withAsterisk
+        size="md"
         label={t('name_input_label')}
         placeholder={t('team_name_input_placeholder')}
         autoComplete="off"
@@ -128,13 +130,20 @@ function RegistrationForm({
           <Group key={index} wrap="nowrap">
             <TextInput
               style={{ flex: 1 }}
+              size="md"
               placeholder={t('player_name_input_placeholder')}
               autoComplete="off"
               {...form.getInputProps(`player_names.${index}`)}
             />
             {form.values.player_names.length > minSize ? (
-              <ActionIcon color="red" variant="subtle" onClick={() => removePlayer(index)}>
-                <IconTrash size={18} />
+              <ActionIcon
+                color="red"
+                variant="subtle"
+                size="lg"
+                aria-label={t('delete_button')}
+                onClick={() => removePlayer(index)}
+              >
+                <IconTrash size={20} />
               </ActionIcon>
             ) : null}
           </Group>
@@ -142,7 +151,13 @@ function RegistrationForm({
       </Stack>
 
       {form.values.player_names.length < maxSize ? (
-        <Button variant="light" mt="sm" leftSection={<IconPlus size={16} />} onClick={addPlayer}>
+        <Button
+          variant="light"
+          size="md"
+          mt="sm"
+          leftSection={<IconPlus size={16} />}
+          onClick={addPlayer}
+        >
           {t('add_player_button')}
         </Button>
       ) : null}
@@ -153,25 +168,33 @@ function RegistrationForm({
       <Text fz="xs" c="dimmed">
         {contactRequired ? t('contact_required_hint') : t('contact_optional_hint')}
       </Text>
-      <Group grow mt="xs" align="start">
-        <TextInput
-          withAsterisk={contactRequired}
-          placeholder={t('contact_name_placeholder')}
-          autoComplete="off"
-          {...form.getInputProps('contact_name')}
-        />
-        <TextInput
-          withAsterisk={contactRequired}
-          placeholder={t('contact_phone_placeholder')}
-          inputMode="tel"
-          autoComplete="off"
-          {...form.getInputProps('contact_phone')}
-        />
-      </Group>
+      <Grid mt="xs" gutter="sm">
+        <Grid.Col span={{ base: 12, xs: 6 }}>
+          <TextInput
+            withAsterisk={contactRequired}
+            size="md"
+            placeholder={t('contact_name_placeholder')}
+            autoComplete="off"
+            {...form.getInputProps('contact_name')}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, xs: 6 }}>
+          <TextInput
+            withAsterisk={contactRequired}
+            size="md"
+            placeholder={t('contact_phone_placeholder')}
+            type="tel"
+            inputMode="tel"
+            autoComplete="off"
+            {...form.getInputProps('contact_phone')}
+          />
+        </Grid.Col>
+      </Grid>
 
       {passwordRequired ? (
         <PasswordInput
           withAsterisk
+          size="md"
           label={t('registration_password_label')}
           description={t('registration_password_hint')}
           mt="lg"
@@ -189,6 +212,7 @@ function RegistrationForm({
               // The wording is the identity here, and it does not change while the form is open.
               // eslint-disable-next-line react/no-array-index-key
               key={index}
+              size="md"
               label={term}
               {...form.getInputProps(`accepted_terms.${index}`, { type: 'checkbox' })}
             />
@@ -201,7 +225,7 @@ function RegistrationForm({
         </Stack>
       ) : null}
 
-      <Button fullWidth mt="lg" type="submit">
+      <Button fullWidth size="md" mt="lg" type="submit">
         {t('register_button')}
       </Button>
     </form>

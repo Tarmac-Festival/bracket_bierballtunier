@@ -38,8 +38,11 @@
   min-width: 0;
 }
 
+/* Gives way and wraps onto a second row rather than forcing the page wider than the
+   phone it is being read on. */
 .links {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .mainLinks {

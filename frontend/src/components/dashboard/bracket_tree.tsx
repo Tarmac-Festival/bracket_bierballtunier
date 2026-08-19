@@ -1,4 +1,5 @@
 import { Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -10,16 +11,42 @@ import {
 import { formatStageItemInput } from '@components/utils/stage_item_input';
 import { StageItemWithRounds, TournamentEvent } from '@openapi';
 
-const BOX_WIDTH = 230;
-const BOX_HEIGHT = 78;
-const COLUMN_GAP = 56;
-const SIBLING_GAP = 18;
-const ROUND_HEADER_HEIGHT = 34;
-const DAY_LINE_HEIGHT = 20;
-const EVENT_WIDTH = 46;
-// Before the first round or after the last one nothing competes for the space, so the
-// band there is a touch wider and set a size up.
-const EDGE_EVENT_WIDTH = 62;
+type Metrics = {
+  boxWidth: number;
+  boxHeight: number;
+  columnGap: number;
+  siblingGap: number;
+  roundHeader: number;
+  dayLine: number;
+  eventWidth: number;
+  // Before the first round or after the last one nothing competes for the space, so the
+  // band there is a touch wider and set a size up.
+  edgeEventWidth: number;
+};
+
+const WIDE: Metrics = {
+  boxWidth: 230,
+  boxHeight: 78,
+  columnGap: 56,
+  siblingGap: 18,
+  roundHeader: 34,
+  dayLine: 20,
+  eventWidth: 46,
+  edgeEventWidth: 62,
+};
+
+// On a phone the bracket is swiped through sideways, so everything is drawn tighter to
+// get more than a column and a half on screen at a time.
+const COMPACT: Metrics = {
+  boxWidth: 168,
+  boxHeight: 70,
+  columnGap: 34,
+  siblingGap: 14,
+  roundHeader: 30,
+  dayLine: 18,
+  eventWidth: 38,
+  edgeEventWidth: 50,
+};
 
 type PositionedMatch = {
   id: number;
@@ -59,6 +86,7 @@ function layOutRounds(
   stageItemsLookup: any,
   events: TournamentEvent[],
   emptyLabel: string,
+  m: Metrics,
 ): { matches: PositionedMatch[]; columns: Column[]; width: number; height: number } {
   const rounds = [...stageItem.rounds]
     .sort((r1, r2) => r1.name.localeCompare(r2.name, undefined, { numeric: true }))
@@ -128,14 +156,14 @@ function layOutRounds(
     const x = nextX;
 
     if (column.kind === 'round') {
-      nextX += BOX_WIDTH + COLUMN_GAP;
-      return { ...column, x, width: BOX_WIDTH };
+      nextX += m.boxWidth + m.columnGap;
+      return { ...column, x, width: m.boxWidth };
     }
 
     const atEdge = index < firstRoundAt || index > lastRoundAt;
-    const width = atEdge ? EDGE_EVENT_WIDTH : EVENT_WIDTH;
+    const width = atEdge ? m.edgeEventWidth : m.eventWidth;
     const day = formatDay(column.event.start_time);
-    nextX += width + COLUMN_GAP;
+    nextX += width + m.columnGap;
     return {
       ...column,
       x,
@@ -145,7 +173,7 @@ function layOutRounds(
       atEdge,
     };
   });
-  const width = Math.max(nextX - COLUMN_GAP, 0);
+  const width = Math.max(nextX - m.columnGap, 0);
   const roundX = columns.filter((column) => column.kind === 'round').map((column) => column.x);
 
   const matchById = new Map<number, any>();
@@ -183,7 +211,7 @@ function layOutRounds(
       const feederPositions = feeders.map((id) => place(matchById.get(id)));
       centerY = feederPositions.reduce((sum, y) => sum + y, 0) / feederPositions.length;
     } else {
-      centerY = nextSlot * (BOX_HEIGHT + SIBLING_GAP) + BOX_HEIGHT / 2;
+      centerY = nextSlot * (m.boxHeight + m.siblingGap) + m.boxHeight / 2;
       nextSlot += 1;
     }
 
@@ -210,7 +238,7 @@ function layOutRounds(
 
     round.matches.forEach((match: any) => {
       const centerY = positions.get(match.id) as number;
-      height = Math.max(height, centerY + BOX_HEIGHT / 2);
+      height = Math.max(height, centerY + m.boxHeight / 2);
 
       const named1 = formatStageItemInput(match.stage_item_input1, stageItemsLookup);
       const named2 = formatStageItemInput(match.stage_item_input2, stageItemsLookup);
@@ -236,7 +264,7 @@ function layOutRounds(
   return { matches: result, columns, width, height };
 }
 
-function Connectors({ matches }: { matches: PositionedMatch[] }) {
+function Connectors({ matches, m }: { matches: PositionedMatch[]; m: Metrics }) {
   const byId = new Map(matches.map((match) => [match.id, match]));
 
   return (
@@ -246,9 +274,9 @@ function Connectors({ matches }: { matches: PositionedMatch[] }) {
           const feeder = byId.get(feederId);
           if (feeder == null) return null;
 
-          const fromX = feeder.x + BOX_WIDTH;
+          const fromX = feeder.x + m.boxWidth;
           const toX = match.x;
-          const middleX = toX - COLUMN_GAP / 2;
+          const middleX = toX - m.columnGap / 2;
 
           return (
             <path
@@ -265,7 +293,7 @@ function Connectors({ matches }: { matches: PositionedMatch[] }) {
   );
 }
 
-function MatchBox({ match }: { match: PositionedMatch }) {
+function MatchBox({ match, m }: { match: PositionedMatch; m: Metrics }) {
   const decided = match.score1 !== match.score2;
   const rowStyle = (won: boolean) => ({
     display: 'flex',
@@ -281,9 +309,9 @@ function MatchBox({ match }: { match: PositionedMatch }) {
       style={{
         position: 'absolute',
         left: match.x,
-        top: match.centerY - BOX_HEIGHT / 2,
-        width: BOX_WIDTH,
-        height: BOX_HEIGHT,
+        top: match.centerY - m.boxHeight / 2,
+        width: m.boxWidth,
+        height: m.boxHeight,
         borderRadius: 8,
         border: '1px solid var(--mantine-color-dark-4)',
         background: 'var(--mantine-color-dark-6)',
@@ -311,7 +339,15 @@ function MatchBox({ match }: { match: PositionedMatch }) {
   );
 }
 
-function EventBand({ column, height }: { column: Column & { kind: 'event' }; height: number }) {
+function EventBand({
+  column,
+  height,
+  m,
+}: {
+  column: Column & { kind: 'event' };
+  height: number;
+  m: Metrics;
+}) {
   const { t } = useTranslation();
   const { event } = column;
 
@@ -376,11 +412,13 @@ export function BracketTree({
   events: TournamentEvent[];
 }) {
   const { t } = useTranslation();
+  const m = useMediaQuery('(max-width: 48em)') ? COMPACT : WIDE;
   const { matches, columns, width, height } = layOutRounds(
     stageItem,
     stageItemsLookup,
     events,
     t('empty_slot'),
+    m,
   );
 
   if (matches.length < 1) {
@@ -388,8 +426,8 @@ export function BracketTree({
   }
 
   const headerHeight =
-    ROUND_HEADER_HEIGHT +
-    (columns.some((column) => column.kind === 'round' && column.day != null) ? DAY_LINE_HEIGHT : 0);
+    m.roundHeader +
+    (columns.some((column) => column.kind === 'round' && column.day != null) ? m.dayLine : 0);
 
   return (
     // Centred while it fits, scrollable once the bracket outgrows the screen.
@@ -433,17 +471,17 @@ export function BracketTree({
             height={height}
             style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
           >
-            <Connectors matches={matches} />
+            <Connectors matches={matches} m={m} />
           </svg>
           {matches.map((match) => (
-            <MatchBox key={match.id} match={match} />
+            <MatchBox key={match.id} match={match} m={m} />
           ))}
         </div>
 
         {/* Last, so the band covers the lines running past it instead of being crossed. */}
         {columns.map((column) =>
           column.kind === 'event' ? (
-            <EventBand key={column.key} column={column} height={height + headerHeight} />
+            <EventBand key={column.key} column={column} height={height + headerHeight} m={m} />
           ) : null,
         )}
       </div>
