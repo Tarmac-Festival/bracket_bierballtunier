@@ -15,7 +15,11 @@ import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 
 import { TournamentEvent } from '@openapi';
-import { createTournamentEvent, updateTournamentEvent } from '@services/tournament_event';
+import {
+  TournamentEventFields,
+  createTournamentEvent,
+  updateTournamentEvent,
+} from '@services/tournament_event';
 
 export type AnchorOption = { value: string; label: string };
 
@@ -84,7 +88,7 @@ export function TournamentEventModal({
     >
       <form
         onSubmit={form.onSubmit(async (values) => {
-          const fields = {
+          const fields: TournamentEventFields = {
             name: values.name,
             description: values.description,
             location: values.location,

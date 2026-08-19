@@ -9,6 +9,7 @@ export type TournamentEventFields = {
   start_time: any;
   after_round_id: number | null;
   after_match_id: number | null;
+  before_round_id: number | null;
   duration_minutes: number;
   blocks_matches: boolean;
 };
@@ -26,6 +27,7 @@ function body(fields: TournamentEventFields) {
     start_time: isoDate(fields.start_time),
     after_round_id: fields.after_round_id,
     after_match_id: fields.after_match_id,
+    before_round_id: fields.before_round_id,
     duration_minutes: fields.duration_minutes,
     blocks_matches: fields.blocks_matches,
   };
