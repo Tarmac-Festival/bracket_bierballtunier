@@ -1,7 +1,7 @@
 import { Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 
-import { formatTime } from '@components/utils/datetime';
+import { formatDayAndTime, formatTime, spansMultipleDays } from '@components/utils/datetime';
 import { formatStageItemInput } from '@components/utils/stage_item_input';
 import { StageItemWithRounds } from '@openapi';
 
@@ -36,6 +36,13 @@ function layOutRounds(
     .sort((r1, r2) => r1.name.localeCompare(r2.name, undefined, { numeric: true }))
     .filter((round) => round.matches.length > 0);
 
+  // Over several days the time on its own is ambiguous, so the date joins it in the boxes.
+  const formatStart = spansMultipleDays(
+    rounds.flatMap((round) => round.matches).map((match: any) => match.start_time),
+  )
+    ? formatDayAndTime
+    : formatTime;
+
   const positions = new Map<number, number>();
   const result: PositionedMatch[] = [];
   let height = 0;
@@ -69,7 +76,7 @@ function layOutRounds(
         label2: named2 ?? (match.stage_item_input2_winner_from_match_id != null ? '—' : emptyLabel),
         score1: match.stage_item_input1_score,
         score2: match.stage_item_input2_score,
-        subtitle: [match.court?.name, match.start_time ? formatTime(match.start_time) : null]
+        subtitle: [match.court?.name, match.start_time ? formatStart(match.start_time) : null]
           .filter(Boolean)
           .join(' · '),
         feeders,

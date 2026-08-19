@@ -12,7 +12,13 @@ import {
 } from '@components/dashboard/layout';
 import { RegistrationBanner } from '@components/dashboard/registration_banner';
 import { NoContent } from '@components/no_content/empty_table_info';
-import { Time, compareDateTime, formatTime } from '@components/utils/datetime';
+import {
+  Time,
+  compareDateTime,
+  formatDayAndTime,
+  formatTime,
+  spansMultipleDays,
+} from '@components/utils/datetime';
 import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
 import { Translator } from '@components/utils/types';
 import { responseIsValid, setTitle } from '@components/utils/util';
@@ -151,29 +157,32 @@ export function Schedule({
         m1.match.court?.name.localeCompare(m2.match.court?.name, undefined, { numeric: true }),
     );
 
+  // Over several days a bare "20:30" says nothing about which day it is, so the headings
+  // carry the date as well.
+  const multipleDays = spansMultipleDays(sortedMatches.map((data: any) => data.match.start_time));
+  const headingFor = (startTime: string) =>
+    multipleDays ? formatDayAndTime(startTime) : formatTime(startTime);
+
   const rows: React.JSX.Element[] = [];
 
   for (let c = 0; c < sortedMatches.length; c += 1) {
     const data = sortedMatches[c];
+    const heading = headingFor(data.match.start_time);
 
-    if (c < 1 || sortedMatches[c - 1].match.start_time) {
-      const startTime = formatTime(data.match.start_time);
-
-      if (c < 1 || startTime !== formatTime(sortedMatches[c - 1].match.start_time)) {
-        rows.push(
-          <Center mt="xl" key={`time-${c}`}>
-            <Text
-              size="xl"
-              fw={800}
-              tt="uppercase"
-              c="tarmacGreen.4"
-              style={{ letterSpacing: '2px' }}
-            >
-              {startTime}
-            </Text>
-          </Center>,
-        );
-      }
+    if (c < 1 || heading !== headingFor(sortedMatches[c - 1].match.start_time)) {
+      rows.push(
+        <Center mt="xl" key={`time-${c}`}>
+          <Text
+            size="xl"
+            fw={800}
+            tt="uppercase"
+            c="tarmacGreen.4"
+            style={{ letterSpacing: '2px' }}
+          >
+            {heading}
+          </Text>
+        </Center>,
+      );
     }
 
     rows.push(

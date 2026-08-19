@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 import MatchModal from '@components/modals/match_modal';
 import { NoContent } from '@components/no_content/empty_table_info';
-import { Time, formatTime } from '@components/utils/datetime';
+import { Time, formatDayAndTime, formatTime, spansMultipleDays } from '@components/utils/datetime';
 import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
 import { Translator } from '@components/utils/types';
 import { getTournamentIdFromRouter, responseIsValid } from '@components/utils/util';
@@ -162,23 +162,26 @@ function Schedule({
     .sort((m1: any, m2: any) => (m1.match.court?.name > m2.match.court?.name ? 1 : -1))
     .sort((m1: any, m2: any) => (m1.match.start_time > m2.match.start_time ? 1 : -1));
 
+  // Over several days a bare "20:30" says nothing about which day it is, so the headings
+  // carry the date as well.
+  const multipleDays = spansMultipleDays(sortedMatches.map((data: any) => data.match.start_time));
+  const headingFor = (startTime: string) =>
+    multipleDays ? formatDayAndTime(startTime) : formatTime(startTime);
+
   const rows: React.JSX.Element[] = [];
 
   for (let c = 0; c < sortedMatches.length; c += 1) {
     const data = sortedMatches[c];
+    const heading = headingFor(data.match.start_time);
 
-    if (c < 1 || sortedMatches[c - 1].match.start_time) {
-      const startTime = formatTime(data.match.start_time);
-
-      if (c < 1 || startTime !== formatTime(sortedMatches[c - 1].match.start_time)) {
-        rows.push(
-          <Center mt="md" key={`time-${c}`}>
-            <Text size="xl" fw={800}>
-              {startTime}
-            </Text>
-          </Center>,
-        );
-      }
+    if (c < 1 || heading !== headingFor(sortedMatches[c - 1].match.start_time)) {
+      rows.push(
+        <Center mt="md" key={`time-${c}`}>
+          <Text size="xl" fw={800}>
+            {heading}
+          </Text>
+        </Center>,
+      );
     }
 
     rows.push(
