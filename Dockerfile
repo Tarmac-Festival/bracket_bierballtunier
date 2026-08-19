@@ -7,11 +7,13 @@ ENV NODE_ENV=production
 
 COPY frontend .
 
+# The API lives behind /api on whatever host serves the page, so the address stays
+# relative: baked in as localhost it only ever worked on the machine running it.
 # Through npm, not `apk add pnpm`: that pulls a second Node in next to the one this
 # image already ships, and installing it fails on the image's own /usr/bin.
 RUN npm install -g pnpm@11 && \
     CI=true pnpm install && \
-    VITE_API_BASE_URL=http://localhost:8400/api pnpm build
+    VITE_API_BASE_URL=/api pnpm build
 
 # Build backend image that also serves frontend (stored in `/app/frontend-dist`)
 FROM python:3.14-alpine3.22
