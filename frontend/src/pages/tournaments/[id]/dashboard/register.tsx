@@ -88,6 +88,7 @@ function RegistrationForm({
         withAsterisk
         label={t('name_input_label')}
         placeholder={t('team_name_input_placeholder')}
+        autoComplete="off"
         {...form.getInputProps('team_name')}
       />
 
@@ -102,6 +103,7 @@ function RegistrationForm({
             <TextInput
               style={{ flex: 1 }}
               placeholder={t('player_name_input_placeholder')}
+              autoComplete="off"
               {...form.getInputProps(`player_names.${index}`)}
             />
             {form.values.player_names.length > minSize ? (
@@ -125,6 +127,9 @@ function RegistrationForm({
           label={t('registration_password_label')}
           description={t('registration_password_hint')}
           mt="lg"
+          // This is a shared password for the tournament, not a personal login, so keep
+          // browsers from offering saved credentials for it.
+          autoComplete="new-password"
           {...form.getInputProps('password')}
         />
       ) : null}

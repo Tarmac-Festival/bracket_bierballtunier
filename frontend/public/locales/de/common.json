@@ -250,6 +250,8 @@
     "remove_match_button": "Spiel entfernen",
     "results_spotlight_description": "Geben Sie die Ergebnisse der Spiele ein.",
     "results_title": "Ergebnisse",
+    "round_start_times_description": "Optional. Eine Runde wird nicht vor dieser Zeit geplant — so kann ein Turnier über mehrere Tage laufen.",
+    "round_start_times_title": "Startzeiten der Runden",
     "round_start_time_description": "Optional. Die Planung legt diese Runde nicht früher, damit ein Turnier über mehrere Tage laufen kann.",
     "round_start_time_label": "Frühester Start dieser Runde",
     "round_start_time_placeholder": "Direkt nach der vorherigen Runde",

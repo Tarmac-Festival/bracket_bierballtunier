@@ -250,6 +250,8 @@
     "remove_match_button": "Remove Match",
     "results_spotlight_description": "Enter scores of matches",
     "results_title": "Results",
+    "round_start_times_description": "Optional. A round is not scheduled before this time, which lets a tournament run over several days.",
+    "round_start_times_title": "Start times of the rounds",
     "round_start_time_description": "Optional. Scheduling won't place this round earlier, which lets a tournament run over several days.",
     "round_start_time_label": "Earliest start of this round",
     "round_start_time_placeholder": "Directly after the previous round",

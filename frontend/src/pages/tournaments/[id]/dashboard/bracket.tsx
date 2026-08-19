@@ -59,7 +59,7 @@ export default function DashboardBracketPage() {
           <Stack gap="xl">
             {stageItems.map((stageItem: StageItemWithRounds) => (
               <div key={stageItem.id}>
-                <Title order={3} tt="uppercase" mb="sm">
+                <Title order={3} tt="uppercase" mb="sm" ta="center">
                   {stageItem.name}
                 </Title>
                 <BracketTree stageItem={stageItem} stageItemsLookup={stageItemsLookup} />
