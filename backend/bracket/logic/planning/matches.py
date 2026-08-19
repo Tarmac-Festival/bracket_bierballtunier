@@ -18,6 +18,8 @@ from bracket.sql.stages import get_full_tournament_details
 from bracket.sql.tournament_events import (
     sql_get_events_of_tournament,
     sql_get_match_end_times,
+    sql_get_round_start_times,
+    sql_get_rounds_with_own_start_time,
     sql_set_event_start_time,
 )
 from bracket.sql.tournaments import sql_get_tournament
@@ -33,7 +35,16 @@ async def get_blocked_periods(tournament_id: TournamentId) -> BlockedPeriods:
     as a halftime show or an award ceremony.
     """
     events = await sql_get_events_of_tournament(tournament_id)
-    return sorted((event.start_time, event.end_time) for event in events if event.blocks_matches)
+    # An event that ends when a round begins can only hold the pitch when that round is
+    # pinned to a time of its own. Otherwise pushing the matches before it would move the
+    # round, which would move the event, which would push the matches again.
+    pinned_rounds = await sql_get_rounds_with_own_start_time(tournament_id)
+    return sorted(
+        (event.start_time, event.end_time)
+        for event in events
+        if event.blocks_matches
+        and (event.before_round_id is None or event.before_round_id in pinned_rounds)
+    )
 
 
 def start_after_blocked_periods(
@@ -236,6 +247,7 @@ async def resolve_anchored_event_times(tournament_id: TournamentId) -> bool:
     end_of_round: dict[RoundId, datetime_utc] = {}
     for _, round_id, end_time in end_times:
         end_of_round[round_id] = max(end_of_round.get(round_id, end_time), end_time)
+    start_of_round = await sql_get_round_start_times(tournament_id)
 
     changed = False
     for event in events:
@@ -243,6 +255,14 @@ async def resolve_anchored_event_times(tournament_id: TournamentId) -> bool:
             start_time = end_of_match.get(event.after_match_id)
         elif event.after_round_id is not None:
             start_time = end_of_round.get(event.after_round_id)
+        elif event.before_round_id is not None:
+            # It runs up to the moment the round begins, so it ends exactly on time.
+            round_start = start_of_round.get(event.before_round_id)
+            start_time = (
+                round_start - timedelta(minutes=event.duration_minutes)
+                if round_start is not None
+                else None
+            )
         else:
             continue
 

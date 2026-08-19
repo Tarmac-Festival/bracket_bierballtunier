@@ -49,6 +49,7 @@ async def tournament_with_registration(
     team_size_min: int = 1,
     team_size_max: int = 4,
     password: str | None = None,
+    terms: str | None = None,
 ) -> AsyncIterator[Tournament]:
     """
     Every test gets its own tournament, so that changing the registration settings can't
@@ -62,6 +63,7 @@ async def tournament_with_registration(
                 "registration_enabled": enabled,
                 "registration_deadline": deadline,
                 "registration_password": password,
+                "registration_terms": terms,
                 "team_size_min": team_size_min,
                 "team_size_max": team_size_max,
             }
@@ -71,12 +73,21 @@ async def tournament_with_registration(
 
 
 async def register_team(
-    tournament: Tournament, name: str, player_names: list[str], password: str | None = None
+    tournament: Tournament,
+    name: str,
+    player_names: list[str],
+    password: str | None = None,
+    accepted_terms: list[str] | None = None,
 ) -> dict:
     return await send_request(
         HTTPMethod.POST,
         f"tournaments/{tournament.id}/register",
-        json={"name": name, "player_names": player_names, "password": password},
+        json={
+            "name": name,
+            "player_names": player_names,
+            "password": password,
+            "accepted_terms": accepted_terms or [],
+        },
     )
 
 
@@ -395,6 +406,46 @@ async def test_merge_team_into_itself_is_rejected(
         )
 
         assert response["detail"] == "Can't merge a team into itself"
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_registration_requires_every_confirmation_to_be_ticked(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    terms = """Ich habe das Regelwerk gelesen
+Ich bin mit Fotos einverstanden"""
+
+    async with tournament_with_registration(auth_context, terms=terms) as tournament:
+        response = await register_team(tournament, "Ohne Häkchen", ["Ann"])
+        assert response["detail"] == "Please confirm: Ich habe das Regelwerk gelesen"
+        await assert_row_count_and_clear(teams, 0)
+
+        response = await register_team(
+            tournament, "Halb", ["Ann"], accepted_terms=["Ich habe das Regelwerk gelesen"]
+        )
+        assert response["detail"] == "Please confirm: Ich bin mit Fotos einverstanden"
+        await assert_row_count_and_clear(teams, 0)
+
+        response = await register_team(
+            tournament, "Vollständig", ["Ann"], accepted_terms=terms.splitlines()
+        )
+        assert response["data"]["name"] == "Vollständig"
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_registration_without_confirmations_stays_as_it_was(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context, terms="   ") as tournament:
+        response = await register_team(tournament, "Ohne Bedingungen", ["Ann"])
+
+        assert response["data"]["name"] == "Ohne Bedingungen"
         await assert_row_count_and_clear(players_x_teams, 1)
         await assert_row_count_and_clear(players, 1)
         await assert_row_count_and_clear(teams, 1)

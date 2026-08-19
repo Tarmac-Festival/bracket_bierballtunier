@@ -276,3 +276,97 @@ async def test_an_event_needs_a_time_or_something_to_follow(
         json={"name": "Ohne Zeitpunkt", "duration_minutes": 30},
     )
     assert "start time" in response["detail"]
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_an_event_before_a_round_ends_when_that_round_starts(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    """
+    Gathering before the round: the event runs up to the moment the round begins, and the
+    matches keep the slot free because the round is pinned to a time of its own.
+    """
+    tournament_id = auth_context.tournament.id
+
+    try:
+        await add_courts(tournament_id, 1, auth_context)
+        await add_elimination_stage_item(tournament_id, 4, auth_context)
+
+        round_ids = [
+            row["id"]
+            for row in await database.fetch_all(query=rounds.select().order_by(rounds.c.id))
+        ]
+        second_day = (datetime_utc.now() + timedelta(days=1)).replace(microsecond=0)
+        await send_auth_request(
+            HTTPMethod.PUT,
+            f"tournaments/{tournament_id}/rounds/{round_ids[1]}",
+            auth_context,
+            json={
+                "name": "Round 02",
+                "is_draft": False,
+                "start_time": second_day.isoformat().replace("+00:00", "Z"),
+            },
+        )
+        await send_auth_request(
+            HTTPMethod.POST, f"tournaments/{tournament_id}/schedule_matches", auth_context, json={}
+        )
+
+        await send_tournament_request(
+            HTTPMethod.POST,
+            "events",
+            auth_context,
+            json={
+                "name": "Sammeln und melden",
+                "location": "Hauptplatz",
+                "duration_minutes": 30,
+                "blocks_matches": True,
+                "before_round_id": round_ids[1],
+            },
+        )
+
+        listed = await send_tournament_request(HTTPMethod.GET, "events", auth_context, {})
+        event = listed["data"][0]
+        assert event["start_time"] == (second_day - timedelta(minutes=30)).isoformat().replace(
+            "+00:00", "Z"
+        )
+
+        # Nothing is played during the gathering.
+        for row in await database.fetch_all(query=matches.select()):
+            match_end = row["start_time"] + timedelta(minutes=row["duration_minutes"])
+            assert not (
+                row["start_time"] < second_day and second_day - timedelta(minutes=30) < match_end
+            ), f"match at {row['start_time']} runs into the gathering"
+    finally:
+        await clear_events_of(tournament_id)
+        await clear_schedule_of(tournament_id)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_an_event_cannot_hang_off_two_things_at_once(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    tournament_id = auth_context.tournament.id
+
+    try:
+        await add_courts(tournament_id, 1, auth_context)
+        await add_elimination_stage_item(tournament_id, 4, auth_context)
+        round_ids = [
+            row["id"]
+            for row in await database.fetch_all(query=rounds.select().order_by(rounds.c.id))
+        ]
+
+        response = await send_tournament_request(
+            HTTPMethod.POST,
+            "events",
+            auth_context,
+            json={
+                "name": "Verwirrend",
+                "duration_minutes": 30,
+                "after_round_id": round_ids[0],
+                "before_round_id": round_ids[1],
+            },
+        )
+        assert "not several" in response["detail"]
+    finally:
+        await clear_events_of(tournament_id)
+        await clear_schedule_of(tournament_id)

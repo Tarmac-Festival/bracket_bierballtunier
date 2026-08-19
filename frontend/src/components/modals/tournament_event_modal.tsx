@@ -20,11 +20,12 @@ import { createTournamentEvent, updateTournamentEvent } from '@services/tourname
 export type AnchorOption = { value: string; label: string };
 
 // What decides when the event starts.
-type Timing = 'fixed' | 'round' | 'match';
+type Timing = 'fixed' | 'round' | 'match' | 'beforeRound';
 
 function initialTiming(event: TournamentEvent | null): Timing {
   if (event?.after_match_id != null) return 'match';
   if (event?.after_round_id != null) return 'round';
+  if (event?.before_round_id != null) return 'beforeRound';
   return 'fixed';
 }
 
@@ -56,6 +57,7 @@ export function TournamentEventModal({
       start_time: event != null ? dayjs(event.start_time) : null,
       after_round_id: event?.after_round_id != null ? `${event.after_round_id}` : null,
       after_match_id: event?.after_match_id != null ? `${event.after_match_id}` : null,
+      before_round_id: event?.before_round_id != null ? `${event.before_round_id}` : null,
       duration_minutes: event?.duration_minutes ?? 30,
       blocks_matches: event?.blocks_matches ?? true,
     },
@@ -67,6 +69,8 @@ export function TournamentEventModal({
         values.timing !== 'round' || value != null ? null : t('event_after_round_validation'),
       after_match_id: (value: any, values: any) =>
         values.timing !== 'match' || value != null ? null : t('event_after_match_validation'),
+      before_round_id: (value: any, values: any) =>
+        values.timing !== 'beforeRound' || value != null ? null : t('event_after_round_validation'),
     },
   });
 
@@ -88,6 +92,8 @@ export function TournamentEventModal({
             start_time: values.timing === 'fixed' ? values.start_time : null,
             after_round_id: values.timing === 'round' ? Number(values.after_round_id) : null,
             after_match_id: values.timing === 'match' ? Number(values.after_match_id) : null,
+            before_round_id:
+              values.timing === 'beforeRound' ? Number(values.before_round_id) : null,
             duration_minutes: Number(values.duration_minutes),
             blocks_matches: values.blocks_matches,
           };
@@ -129,6 +135,7 @@ export function TournamentEventModal({
             { value: 'fixed', label: t('event_timing_fixed') },
             { value: 'round', label: t('event_timing_after_round') },
             { value: 'match', label: t('event_timing_after_match') },
+            { value: 'beforeRound', label: t('event_timing_before_round') },
           ]}
           {...form.getInputProps('timing')}
         />
@@ -151,6 +158,16 @@ export function TournamentEventModal({
               {...form.getInputProps('after_round_id')}
             />
           ) : null}
+          {timing === 'beforeRound' ? (
+            <Select
+              withAsterisk
+              searchable
+              label={t('event_before_round_label')}
+              placeholder={t('event_after_round_placeholder')}
+              data={roundOptions}
+              {...form.getInputProps('before_round_id')}
+            />
+          ) : null}
           {timing === 'match' ? (
             <Select
               withAsterisk
@@ -171,6 +188,11 @@ export function TournamentEventModal({
         {timing !== 'fixed' ? (
           <Text fz="sm" c="dimmed" mt={4}>
             {t('event_timing_derived_description')}
+          </Text>
+        ) : null}
+        {timing === 'beforeRound' ? (
+          <Text fz="sm" c="dimmed" mt={4}>
+            {t('event_before_round_blocking_description')}
           </Text>
         ) : null}
 

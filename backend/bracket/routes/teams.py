@@ -382,6 +382,15 @@ async def create_multiple_teams(
     return SuccessResponse()
 
 
+def required_registration_terms(tournament: Tournament) -> list[str]:
+    """
+    One confirmation per line of the tournament's registration terms, blank lines ignored.
+    """
+    return [
+        line.strip() for line in (tournament.registration_terms or "").splitlines() if line.strip()
+    ]
+
+
 @router.post("/tournaments/{tournament_id}/register", response_model=SingleTeamResponse)
 async def register_team(
     body: TeamRegistrationBody,
@@ -404,6 +413,15 @@ async def register_team(
         raise HTTPException(status_code=403, detail="The registration password is incorrect")
 
     check_registration_rate_limit(request)
+
+    missing = [
+        term for term in required_registration_terms(tournament) if term not in body.accepted_terms
+    ]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Please confirm: {missing[0]}",
+        )
 
     team_size = len(body.player_names)
     if not (tournament.team_size_min <= team_size <= tournament.team_size_max):

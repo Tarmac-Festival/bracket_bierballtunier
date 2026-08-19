@@ -28,6 +28,7 @@ tournaments = Table(
     Column("rules", Text, nullable=True),
     Column("registration_enabled", Boolean, nullable=False, server_default="f"),
     Column("registration_info", Text, nullable=True),
+    Column("registration_terms", Text, nullable=True),
     Column("registration_password", String, nullable=True),
     Column("registration_deadline", DateTimeTZ, nullable=True),
     Column("team_size_min", Integer, nullable=False, server_default="1"),
@@ -262,6 +263,13 @@ tournament_events = Table(
         "after_match_id",
         BigInteger,
         ForeignKey("matches.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    # The other way round: the event ends when this round starts.
+    Column(
+        "before_round_id",
+        BigInteger,
+        ForeignKey("rounds.id", ondelete="SET NULL"),
         nullable=True,
     ),
 )

@@ -27,6 +27,8 @@ class TournamentInsertable(BaseModelORM):
     rules: str | None = None
     registration_enabled: bool = False
     registration_info: str | None = None
+    # One confirmation per line, each of which the team has to tick off to register.
+    registration_terms: str | None = None
     registration_password: str | None = None
     registration_deadline: datetime_utc | None = None
     team_size_min: int = Field(default=1, ge=1)
@@ -61,6 +63,7 @@ class TournamentUpdateBody(BaseModelORM):
     rules: EmptyStrToNone | str = None
     registration_enabled: bool = False
     registration_info: EmptyStrToNone | str = None
+    registration_terms: EmptyStrToNone | str = None
     # The password is never sent back to the client, so an empty field means "leave as is".
     # Clearing it needs the explicit flag below.
     registration_password: EmptyStrToNone | str = None

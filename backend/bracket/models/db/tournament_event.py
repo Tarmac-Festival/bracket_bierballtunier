@@ -22,10 +22,15 @@ class TournamentEventBody(BaseModelORM):
     blocks_matches: bool = True
     after_round_id: RoundId | None = None
     after_match_id: MatchId | None = None
+    before_round_id: RoundId | None = None
 
     @property
     def is_anchored(self) -> bool:
-        return self.after_round_id is not None or self.after_match_id is not None
+        return (
+            self.after_round_id is not None
+            or self.after_match_id is not None
+            or self.before_round_id is not None
+        )
 
 
 class TournamentEventInsertable(TournamentEventBody):

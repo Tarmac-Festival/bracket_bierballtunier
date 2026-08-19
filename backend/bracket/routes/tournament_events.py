@@ -52,27 +52,64 @@ async def _start_time_of(
     tournament_id: TournamentId, event_body: TournamentEventBody
 ) -> datetime_utc:
     """
-    An event either has the time the user entered, or it follows a round or a match and
-    starts when that one is over.
+    An event either has the time the user entered, or it hangs off the schedule: starting
+    when a round or a match is over, or ending just as a round begins.
     """
-    if event_body.after_round_id is not None and event_body.after_match_id is not None:
+    anchors = [
+        event_body.after_round_id,
+        event_body.after_match_id,
+        event_body.before_round_id,
+    ]
+    if sum(anchor is not None for anchor in anchors) > 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An event can follow either a round or a match, not both",
+            detail="An event can follow a round, follow a match or precede a round, not several",
         )
 
     if not event_body.is_anchored:
         if event_body.start_time is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="An event needs a start time, or a round or match to follow",
+                detail="An event needs a start time, or a round or match to hang off",
             )
         return event_body.start_time
+
+    tournament_start = (await sql_get_tournament(tournament_id)).start_time
+    stages = await get_full_tournament_details(tournament_id, no_draft_rounds=False)
+
+    if event_body.before_round_id is not None:
+        round_ = next(
+            (
+                round_
+                for stage in stages
+                for stage_item in stage.stage_items
+                for round_ in stage_item.rounds
+                if round_.id == event_body.before_round_id
+            ),
+            None,
+        )
+        if round_ is None:
+            raise _unknown_anchor()
+
+        match_starts = [
+            match.start_time for match in round_.matches if match.start_time is not None
+        ]
+        round_start = round_.start_time
+        if match_starts:
+            earliest = min(match_starts)
+            round_start = earliest if round_start is None else max(round_start, earliest)
+
+        if round_start is None:
+            return tournament_start
+
+        return datetime_utc.from_datetime(
+            round_start - timedelta(minutes=event_body.duration_minutes)
+        )
 
     end_time: datetime_utc | None = None
     found = False
 
-    for stage in await get_full_tournament_details(tournament_id, no_draft_rounds=False):
+    for stage in stages:
         for stage_item in stage.stage_items:
             for round_ in stage_item.rounds:
                 for match in round_.matches:
@@ -90,17 +127,21 @@ async def _start_time_of(
                         end_time = match_end if end_time is None else max(end_time, match_end)
 
     if not found:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The round or match to follow does not belong to this tournament",
-        )
+        raise _unknown_anchor()
 
     # Not scheduled yet: park the event at the start of the tournament, the scheduler moves
     # it as soon as there are matches to hang it off.
     if end_time is None:
-        return (await sql_get_tournament(tournament_id)).start_time
+        return tournament_start
 
     return datetime_utc.from_datetime(end_time)
+
+
+def _unknown_anchor() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="The round or match to hang the event off does not belong to this tournament",
+    )
 
 
 @router.get("/tournaments/{tournament_id}/events", response_model=TournamentEventsResponse)

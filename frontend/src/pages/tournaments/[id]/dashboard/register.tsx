@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Alert,
   Button,
+  Checkbox,
   Container,
   Group,
   Paper,
@@ -26,17 +27,28 @@ import { requestSucceeded } from '@services/adapter';
 import { getTournamentResponseByEndpointName } from '@services/dashboard';
 import { registerTeam } from '@services/team';
 
+// One confirmation per line of the tournament's registration terms, blank lines ignored.
+function registrationTerms(tournament: Tournament): string[] {
+  return (tournament.registration_terms ?? '')
+    .split(/\r?\n/)
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
+}
+
 function RegistrationForm({
   tournamentId,
   minSize,
   maxSize,
   passwordRequired,
+  terms,
   onSuccess,
 }: {
   tournamentId: number;
   minSize: number;
   maxSize: number;
   passwordRequired: boolean;
+  // One confirmation the team has to tick off per entry.
+  terms: string[];
   onSuccess: (name: string) => void;
 }) {
   const { t } = useTranslation();
@@ -45,6 +57,7 @@ function RegistrationForm({
       team_name: '',
       password: '',
       player_names: Array.from({ length: minSize }, () => ''),
+      accepted_terms: terms.map(() => false),
     },
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
@@ -52,6 +65,8 @@ function RegistrationForm({
         !passwordRequired || value.length > 0 ? null : t('registration_password_validation'),
       player_names: (value: string[]) =>
         value.every((name) => name.trim().length > 0) ? null : t('player_name_required_validation'),
+      accepted_terms: (value: boolean[]) =>
+        value.every(Boolean) ? null : t('registration_terms_validation'),
     },
   });
 
@@ -75,6 +90,7 @@ function RegistrationForm({
           values.team_name,
           values.player_names,
           values.password,
+          terms,
         );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
@@ -134,6 +150,25 @@ function RegistrationForm({
         />
       ) : null}
 
+      {terms.length > 0 ? (
+        <Stack gap="xs" mt="lg">
+          {terms.map((term: string, index: number) => (
+            <Checkbox
+              // The wording is the identity here, and it does not change while the form is open.
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
+              label={term}
+              {...form.getInputProps(`accepted_terms.${index}`, { type: 'checkbox' })}
+            />
+          ))}
+          {form.errors.accepted_terms != null ? (
+            <Text fz="xs" c="red">
+              {form.errors.accepted_terms}
+            </Text>
+          ) : null}
+        </Stack>
+      ) : null}
+
       <Button fullWidth mt="lg" type="submit">
         {t('register_button')}
       </Button>
@@ -188,6 +223,7 @@ export default function DashboardRegisterPage() {
               minSize={tournament.team_size_min}
               maxSize={tournament.team_size_max}
               passwordRequired={tournament.registration_password_required}
+              terms={registrationTerms(tournament)}
               onSuccess={setSuccess}
             />
           )}

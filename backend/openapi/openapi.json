@@ -2558,6 +2558,13 @@
       },
       "TeamRegistrationBody": {
         "properties": {
+          "accepted_terms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accepted Terms",
+            "type": "array"
+          },
           "name": {
             "maxLength": 30,
             "minLength": 1,
@@ -2588,7 +2595,8 @@
         "required": [
           "name",
           "player_names",
-          "password"
+          "password",
+          "accepted_terms"
         ],
         "title": "TeamRegistrationBody",
         "type": "object"
@@ -2765,6 +2773,17 @@
             "title": "Registration Password Required",
             "type": "boolean"
           },
+          "registration_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Terms"
+          },
           "rules": {
             "anyOf": [
               {
@@ -2811,6 +2830,7 @@
           "rules",
           "registration_enabled",
           "registration_info",
+          "registration_terms",
           "registration_deadline",
           "team_size_min",
           "team_size_max",
@@ -2912,6 +2932,15 @@
             ],
             "title": "Registration Password"
           },
+          "registration_terms": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Registration Terms"
+          },
           "remove_registration_password": {
             "default": false,
             "title": "Remove Registration Password",
@@ -2953,6 +2982,7 @@
           "rules",
           "registration_enabled",
           "registration_info",
+          "registration_terms",
           "registration_password",
           "remove_registration_password",
           "registration_deadline",
@@ -3002,6 +3032,17 @@
               }
             ],
             "title": "After Round Id"
+          },
+          "before_round_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Round Id"
           },
           "blocks_matches": {
             "default": true,
@@ -3072,6 +3113,7 @@
           "blocks_matches",
           "after_round_id",
           "after_match_id",
+          "before_round_id",
           "created",
           "tournament_id",
           "id"
@@ -3103,6 +3145,17 @@
               }
             ],
             "title": "After Round Id"
+          },
+          "before_round_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Round Id"
           },
           "blocks_matches": {
             "default": true,
@@ -3166,7 +3219,8 @@
           "duration_minutes",
           "blocks_matches",
           "after_round_id",
-          "after_match_id"
+          "after_match_id",
+          "before_round_id"
         ],
         "title": "TournamentEventBody",
         "type": "object"
@@ -3295,6 +3349,15 @@
             ],
             "title": "Registration Password"
           },
+          "registration_terms": {
+            "anyOf": [
+              {},
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Registration Terms"
+          },
           "remove_registration_password": {
             "default": false,
             "title": "Remove Registration Password",
@@ -3336,6 +3399,7 @@
           "rules",
           "registration_enabled",
           "registration_info",
+          "registration_terms",
           "registration_password",
           "remove_registration_password",
           "registration_deadline",

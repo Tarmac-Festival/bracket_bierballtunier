@@ -1432,6 +1432,10 @@ export type TeamMultiBody = {
  */
 export type TeamRegistrationBody = {
   /**
+   * Accepted Terms
+   */
+  accepted_terms: Array<string>;
+  /**
    * Name
    */
   name: string;
@@ -1560,6 +1564,10 @@ export type Tournament = {
    */
   readonly registration_password_required: boolean;
   /**
+   * Registration Terms
+   */
+  registration_terms: string | null;
+  /**
    * Rules
    */
   rules: string | null;
@@ -1635,6 +1643,10 @@ export type TournamentBody = {
    */
   registration_password: unknown | string;
   /**
+   * Registration Terms
+   */
+  registration_terms: unknown | string;
+  /**
    * Remove Registration Password
    */
   remove_registration_password: boolean;
@@ -1675,6 +1687,10 @@ export type TournamentEvent = {
    * After Round Id
    */
   after_round_id: number | null;
+  /**
+   * Before Round Id
+   */
+  before_round_id: number | null;
   /**
    * Blocks Matches
    */
@@ -1731,6 +1747,10 @@ export type TournamentEventBody = {
    * After Round Id
    */
   after_round_id: number | null;
+  /**
+   * Before Round Id
+   */
+  before_round_id: number | null;
   /**
    * Blocks Matches
    */
@@ -1835,6 +1855,10 @@ export type TournamentUpdateBody = {
    * Registration Password
    */
   registration_password: unknown | string;
+  /**
+   * Registration Terms
+   */
+  registration_terms: unknown | string;
   /**
    * Remove Registration Password
    */
@@ -2050,6 +2074,10 @@ export type TournamentWritable = {
    * Registration Info
    */
   registration_info: string | null;
+  /**
+   * Registration Terms
+   */
+  registration_terms: string | null;
   /**
    * Rules
    */

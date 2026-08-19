@@ -137,6 +137,7 @@ function GeneralTournamentForm({
       rules: tournament.rules || '',
       registration_enabled: tournament.registration_enabled,
       registration_info: tournament.registration_info || '',
+      registration_terms: tournament.registration_terms || '',
       registration_password: '',
       remove_registration_password: false,
       registration_deadline: tournament.registration_deadline
@@ -191,6 +192,7 @@ function GeneralTournamentForm({
           values.team_size_min,
           values.team_size_max,
           values.max_teams,
+          values.registration_terms,
         );
 
         await swrTournamentResponse.mutate();
@@ -304,6 +306,16 @@ function GeneralTournamentForm({
           minRows={4}
           autosize
           {...form.getInputProps('registration_info')}
+        />
+
+        <Textarea
+          label={t('registration_terms_label')}
+          description={t('registration_terms_description')}
+          placeholder={t('registration_terms_placeholder')}
+          mt="lg"
+          minRows={3}
+          autosize
+          {...form.getInputProps('registration_terms')}
         />
 
         <Text fz="sm" mt="lg">

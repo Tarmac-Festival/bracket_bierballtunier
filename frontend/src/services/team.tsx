@@ -32,12 +32,14 @@ export async function registerTeam(
   name: string,
   player_names: string[],
   password?: string,
+  accepted_terms?: string[],
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/register`, {
       name,
       player_names,
       password: password || null,
+      accepted_terms: accepted_terms ?? [],
     }),
   );
 }

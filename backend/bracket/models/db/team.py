@@ -76,6 +76,8 @@ class TeamRegistrationBody(BaseModelORM):
     name: Annotated[str, StringConstraints(min_length=1, max_length=30)]
     player_names: list[Annotated[str, StringConstraints(min_length=1, max_length=30)]]
     password: str | None = None
+    # The confirmations the team ticked off, sent back as the text that was shown to them.
+    accepted_terms: list[str] = Field(default_factory=list)
 
 
 class TeamMergeBody(BaseModelORM):

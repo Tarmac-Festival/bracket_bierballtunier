@@ -46,7 +46,8 @@ async def sql_update_event(
             duration_minutes = :duration_minutes,
             blocks_matches = :blocks_matches,
             after_round_id = :after_round_id,
-            after_match_id = :after_match_id
+            after_match_id = :after_match_id,
+            before_round_id = :before_round_id
         WHERE tournament_events.tournament_id = :tournament_id
         AND tournament_events.id = :event_id
         """
@@ -68,6 +69,39 @@ async def sql_set_event_start_time(event_id: TournamentEventId, start_time: date
         """,
         values={"event_id": event_id, "start_time": start_time},
     )
+
+
+async def sql_get_round_start_times(tournament_id: TournamentId) -> dict[RoundId, datetime_utc]:
+    """
+    When each round gets going: its own start time when it has one, otherwise the first
+    match on the schedule. Used by an event that has to end just as a round begins.
+    """
+    query = """
+        SELECT
+            rounds.id AS round_id,
+            greatest(rounds.start_time, min(matches.start_time)) AS starts_at
+        FROM rounds
+        JOIN stage_items ON stage_items.id = rounds.stage_item_id
+        JOIN stages ON stages.id = stage_items.stage_id
+        LEFT JOIN matches ON matches.round_id = rounds.id AND matches.start_time IS NOT NULL
+        WHERE stages.tournament_id = :tournament_id
+        GROUP BY rounds.id, rounds.start_time
+        """
+    result = await database.fetch_all(query=query, values={"tournament_id": tournament_id})
+    return {row["round_id"]: row["starts_at"] for row in result if row["starts_at"] is not None}
+
+
+async def sql_get_rounds_with_own_start_time(tournament_id: TournamentId) -> set[RoundId]:
+    query = """
+        SELECT rounds.id AS round_id
+        FROM rounds
+        JOIN stage_items ON stage_items.id = rounds.stage_item_id
+        JOIN stages ON stages.id = stage_items.stage_id
+        WHERE stages.tournament_id = :tournament_id
+        AND rounds.start_time IS NOT NULL
+        """
+    result = await database.fetch_all(query=query, values={"tournament_id": tournament_id})
+    return {row["round_id"] for row in result}
 
 
 async def sql_get_match_end_times(

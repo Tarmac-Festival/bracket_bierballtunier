@@ -52,12 +52,18 @@ function anchorOptions(
 function anchorLabel(
   event: TournamentEvent,
   options: { rounds: AnchorOption[]; matches: AnchorOption[] },
-) {
+): { key: string; anchor: string } | null {
+  const find = (list: AnchorOption[], id: number) =>
+    list.find((option) => option.value === `${id}`)?.label ?? `#${id}`;
+
   if (event.after_match_id != null) {
-    return options.matches.find((option) => option.value === `${event.after_match_id}`)?.label;
+    return { key: 'event_follows_summary', anchor: find(options.matches, event.after_match_id) };
   }
   if (event.after_round_id != null) {
-    return options.rounds.find((option) => option.value === `${event.after_round_id}`)?.label;
+    return { key: 'event_follows_summary', anchor: find(options.rounds, event.after_round_id) };
+  }
+  if (event.before_round_id != null) {
+    return { key: 'event_precedes_summary', anchor: find(options.rounds, event.before_round_id) };
   }
   return null;
 }
@@ -141,7 +147,9 @@ export function EventsPanel({
                   </Text>
                   {anchorLabel(event, options) != null ? (
                     <Text fz="sm" c="dimmed">
-                      {t('event_follows_summary', { anchor: anchorLabel(event, options) })}
+                      {t(anchorLabel(event, options)!.key, {
+                        anchor: anchorLabel(event, options)!.anchor,
+                      })}
                     </Text>
                   ) : null}
                   {event.location ? (
