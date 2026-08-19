@@ -17,8 +17,9 @@ const SIBLING_GAP = 18;
 const ROUND_HEADER_HEIGHT = 34;
 const DAY_LINE_HEIGHT = 20;
 const EVENT_WIDTH = 46;
-// Before the first round or after the last one there is room for readable, upright text.
-const EDGE_EVENT_WIDTH = 170;
+// Before the first round or after the last one nothing competes for the space, so the
+// band there is a touch wider and set a size up.
+const EDGE_EVENT_WIDTH = 62;
 
 type PositionedMatch = {
   id: number;
@@ -313,7 +314,16 @@ function MatchBox({ match }: { match: PositionedMatch }) {
 function EventBand({ column, height }: { column: Column & { kind: 'event' }; height: number }) {
   const { t } = useTranslation();
   const { event } = column;
-  const when = [column.day, column.time].filter(Boolean).join(' ');
+
+  // At the edge of the bracket there is no round on one side, so the band can afford to
+  // say a little more. Same shape everywhere, only the emphasis differs.
+  const parts = [
+    [column.day, column.time].filter(Boolean).join(' '),
+    event.name,
+    ...(column.atEdge
+      ? [t('event_duration_summary', { minutes: event.duration_minutes }), event.location]
+      : []),
+  ].filter(Boolean);
 
   return (
     <div
@@ -333,45 +343,25 @@ function EventBand({ column, height }: { column: Column & { kind: 'event' }; hei
       }}
       title={[event.name, event.location, event.description].filter(Boolean).join(' · ')}
     >
-      {column.atEdge ? (
-        // Room enough to read it the normal way round.
-        <div style={{ padding: '0.75rem 0.6rem', textAlign: 'center' }}>
-          <Text fz="sm" fw={700} tt="uppercase" style={{ lineHeight: 1.25 }}>
-            {event.name}
-          </Text>
-          <Text fz="lg" fw={700} mt="0.4rem" style={{ letterSpacing: '1px' }}>
-            {when}
-          </Text>
-          <Text fz="xs" c="var(--tarmac-purple-light)">
-            {t('event_duration_summary', { minutes: event.duration_minutes })}
-          </Text>
-          {event.location ? (
-            <Text fz="xs" mt="0.4rem" style={{ lineHeight: 1.3 }}>
-              📍 {event.location}
-            </Text>
-          ) : null}
-        </div>
-      ) : (
-        <Text
-          fz="xs"
-          fw={700}
-          tt="uppercase"
-          px="0.2rem"
-          style={{
-            // Bottom to top, so a long name still fits in the narrow band. The location
-            // stays in the tooltip; the band only has room for when and what.
-            writingMode: 'vertical-rl',
-            transform: 'rotate(180deg)',
-            whiteSpace: 'nowrap',
-            letterSpacing: '1px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxHeight: height,
-          }}
-        >
-          {when} · {event.name}
-        </Text>
-      )}
+      <Text
+        fz={column.atEdge ? 'sm' : 'xs'}
+        fw={700}
+        tt="uppercase"
+        px="0.2rem"
+        style={{
+          // Bottom to top, so even a long name fits in a band that is narrower than it is
+          // tall. Whatever still does not fit is left to the tooltip.
+          writingMode: 'vertical-rl',
+          transform: 'rotate(180deg)',
+          whiteSpace: 'nowrap',
+          letterSpacing: '1px',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          maxHeight: height,
+        }}
+      >
+        {parts.join(' · ')}
+      </Text>
     </div>
   );
 }
