@@ -17,6 +17,8 @@ const SIBLING_GAP = 18;
 const ROUND_HEADER_HEIGHT = 34;
 const DAY_LINE_HEIGHT = 20;
 const EVENT_WIDTH = 46;
+// Before the first round or after the last one there is room for readable, upright text.
+const EDGE_EVENT_WIDTH = 170;
 
 type PositionedMatch = {
   id: number;
@@ -33,8 +35,19 @@ type PositionedMatch = {
 };
 
 type Column =
-  | { kind: 'round'; key: string; x: number; name: string; day: string | null }
-  | { kind: 'event'; key: string; x: number; event: TournamentEvent; label: string };
+  | { kind: 'round'; key: string; x: number; width: number; name: string; day: string | null }
+  | {
+      kind: 'event';
+      key: string;
+      x: number;
+      width: number;
+      event: TournamentEvent;
+      time: string;
+      // Only filled in when the surrounding rounds do not already say which day it is.
+      day: string | null;
+      // Before the first round or after the last one, where there is room to spread out.
+      atEdge: boolean;
+    };
 
 /**
  * Lays the matches out as a real bracket: every match sits vertically centred between the
@@ -75,15 +88,10 @@ function layOutRounds(
   // An event goes after every round that has already started when it begins, so a halftime
   // show lands between the rounds it separates and an award ceremony after the final. On a
   // tie the event comes first: it is what pushes the round after it back.
-  const columnsWithoutX = [
+  const ordered = [
     ...roundColumns.map((column, index) => ({ column, order: index, tieBreak: 0 })),
     ...events.map((event) => ({
-      column: {
-        kind: 'event' as const,
-        key: `event-${event.id}`,
-        event,
-        label: `${event.name} · ${multipleDays ? formatDayAndTime(event.start_time) : formatTime(event.start_time)}`,
-      },
+      column: { kind: 'event' as const, key: `event-${event.id}`, event },
       order: roundStartTimes.filter(
         (startTimes) => startTimes.length > 0 && startTimes[0] <= event.start_time,
       ).length,
@@ -91,11 +99,50 @@ function layOutRounds(
     })),
   ].sort((c1, c2) => c1.order - c2.order || c1.tieBreak - c2.tieBreak);
 
+  // The day an event falls on, but only when the rounds next to it do not already say so:
+  // between two rounds of the same day the time on its own is unambiguous.
+  const roundDays = ordered.map((entry) =>
+    entry.column.kind === 'round' ? entry.column.day : null,
+  );
+  const dayNeededAt = (index: number, day: string) => {
+    if (!multipleDays) {
+      return false;
+    }
+    for (let i = index - 1; i >= 0; i -= 1) {
+      if (roundDays[i] != null) {
+        return roundDays[i] !== day;
+      }
+    }
+    // Nothing to the left, so the first round after it has to agree instead.
+    const next = roundDays.slice(index + 1).find((roundDay) => roundDay != null);
+    return next != null && next !== day;
+  };
+
+  const isRound = ordered.map((entry) => entry.column.kind === 'round');
+  const firstRoundAt = isRound.indexOf(true);
+  const lastRoundAt = isRound.lastIndexOf(true);
+
   let nextX = 0;
-  const columns: Column[] = columnsWithoutX.map(({ column }) => {
+  const columns: Column[] = ordered.map(({ column }, index) => {
     const x = nextX;
-    nextX += (column.kind === 'event' ? EVENT_WIDTH : BOX_WIDTH) + COLUMN_GAP;
-    return { ...column, x };
+
+    if (column.kind === 'round') {
+      nextX += BOX_WIDTH + COLUMN_GAP;
+      return { ...column, x, width: BOX_WIDTH };
+    }
+
+    const atEdge = index < firstRoundAt || index > lastRoundAt;
+    const width = atEdge ? EDGE_EVENT_WIDTH : EVENT_WIDTH;
+    const day = formatDay(column.event.start_time);
+    nextX += width + COLUMN_GAP;
+    return {
+      ...column,
+      x,
+      width,
+      time: formatTime(column.event.start_time),
+      day: dayNeededAt(index, day) ? day : null,
+      atEdge,
+    };
   });
   const width = Math.max(nextX - COLUMN_GAP, 0);
   const roundX = columns.filter((column) => column.kind === 'round').map((column) => column.x);
@@ -264,13 +311,17 @@ function MatchBox({ match }: { match: PositionedMatch }) {
 }
 
 function EventBand({ column, height }: { column: Column & { kind: 'event' }; height: number }) {
+  const { t } = useTranslation();
+  const { event } = column;
+  const when = [column.day, column.time].filter(Boolean).join(' ');
+
   return (
     <div
       style={{
         position: 'absolute',
         left: column.x,
         top: 0,
-        width: EVENT_WIDTH,
+        width: column.width,
         height,
         borderRadius: 8,
         border: '1px solid var(--tarmac-purple-light)',
@@ -280,25 +331,47 @@ function EventBand({ column, height }: { column: Column & { kind: 'event' }; hei
         justifyContent: 'center',
         overflow: 'hidden',
       }}
-      title={[column.event.name, column.event.location, column.event.description]
-        .filter(Boolean)
-        .join(' · ')}
+      title={[event.name, event.location, event.description].filter(Boolean).join(' · ')}
     >
-      <Text
-        fz="xs"
-        fw={700}
-        tt="uppercase"
-        style={{
-          // Bottom to top, so a long name still fits in the narrow band.
-          writingMode: 'vertical-rl',
-          transform: 'rotate(180deg)',
-          whiteSpace: 'nowrap',
-          letterSpacing: '1px',
-        }}
-      >
-        {column.label}
-        {column.event.location ? ` · ${column.event.location}` : ''}
-      </Text>
+      {column.atEdge ? (
+        // Room enough to read it the normal way round.
+        <div style={{ padding: '0.75rem 0.6rem', textAlign: 'center' }}>
+          <Text fz="sm" fw={700} tt="uppercase" style={{ lineHeight: 1.25 }}>
+            {event.name}
+          </Text>
+          <Text fz="lg" fw={700} mt="0.4rem" style={{ letterSpacing: '1px' }}>
+            {when}
+          </Text>
+          <Text fz="xs" c="var(--tarmac-purple-light)">
+            {t('event_duration_summary', { minutes: event.duration_minutes })}
+          </Text>
+          {event.location ? (
+            <Text fz="xs" mt="0.4rem" style={{ lineHeight: 1.3 }}>
+              📍 {event.location}
+            </Text>
+          ) : null}
+        </div>
+      ) : (
+        <Text
+          fz="xs"
+          fw={700}
+          tt="uppercase"
+          px="0.2rem"
+          style={{
+            // Bottom to top, so a long name still fits in the narrow band. The location
+            // stays in the tooltip; the band only has room for when and what.
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+            whiteSpace: 'nowrap',
+            letterSpacing: '1px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxHeight: height,
+          }}
+        >
+          {when} · {event.name}
+        </Text>
+      )}
     </div>
   );
 }
@@ -348,7 +421,7 @@ export function BracketTree({
                 position: 'absolute',
                 left: column.x,
                 top: 0,
-                width: BOX_WIDTH,
+                width: column.width,
                 textAlign: 'center',
               }}
             >
