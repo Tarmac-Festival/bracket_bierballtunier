@@ -99,6 +99,7 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
     ...(tournamentData.dashboard_public
       ? [
           { link: `/tournaments/${endpoint}/dashboard`, label: t('dashboard_tab_matches') },
+          { link: `/tournaments/${endpoint}/dashboard/bracket`, label: t('dashboard_tab_bracket') },
           {
             link: `/tournaments/${endpoint}/dashboard/standings`,
             label: t('dashboard_tab_standings'),
