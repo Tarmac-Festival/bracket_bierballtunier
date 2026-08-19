@@ -175,8 +175,17 @@ export function BracketTree({
     .filter((round) => round.matches.length > 0);
 
   return (
-    <div style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
-      <div style={{ position: 'relative', width, height: height + HEADER_HEIGHT, minWidth: width }}>
+    // Centred while it fits, scrollable once the bracket outgrows the screen.
+    <div style={{ overflowX: 'auto', paddingBottom: '0.5rem', display: 'flex' }}>
+      <div
+        style={{
+          position: 'relative',
+          width,
+          height: height + HEADER_HEIGHT,
+          minWidth: width,
+          margin: '0 auto',
+        }}
+      >
         {roundLabels.map((round, column) => (
           <Text
             key={round.id}

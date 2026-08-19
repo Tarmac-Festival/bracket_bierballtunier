@@ -60,6 +60,15 @@ def set_statistics_for_stage_item_input(
             raise ValueError(f"Unsupported stage type: {stage_item.type}")
 
 
+def match_was_played(match: MatchWithDetailsDefinitive) -> bool:
+    """
+    Matches start out at 0-0 and there is no separate "played" flag, so an untouched score
+    is what tells us a match still lies ahead. Without this every upcoming match would be
+    counted as a draw and hand both teams half a point before they have even played.
+    """
+    return match.stage_item_input1_score != 0 or match.stage_item_input2_score != 0
+
+
 def determine_ranking_for_stage_item(
     stage_item: StageItemWithRounds,
     ranking: Ranking,
@@ -75,7 +84,7 @@ def determine_ranking_for_stage_item(
         for round_ in stage_item.rounds
         if not round_.is_draft
         for match in round_.matches
-        if isinstance(match, MatchWithDetailsDefinitive)
+        if isinstance(match, MatchWithDetailsDefinitive) and match_was_played(match)
     ]
     for match in matches:
         for team_index, stage_item_input in enumerate(match.stage_item_inputs):
