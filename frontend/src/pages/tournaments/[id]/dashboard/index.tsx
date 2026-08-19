@@ -22,7 +22,8 @@ import {
 import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
 import { Translator } from '@components/utils/types';
 import { responseIsValid, setTitle } from '@components/utils/util';
-import { getCourtsLive, getStagesLive } from '@services/adapter';
+import { TournamentEvent } from '@openapi';
+import { getCourtsLive, getStagesLive, getTournamentEventsLive } from '@services/adapter';
 import { getTournamentResponseByEndpointName } from '@services/dashboard';
 import { getMatchLookup, getStageItemLookup, stringToColour } from '@services/lookups';
 
@@ -138,38 +139,110 @@ function ScheduleRow({
   );
 }
 
+function EventRow({ event }: { event: TournamentEvent }) {
+  const { t } = useTranslation();
+  return (
+    <Card
+      shadow="sm"
+      radius="md"
+      withBorder
+      mt="md"
+      pt="0rem"
+      style={{ borderLeft: '4px solid var(--tarmac-purple-light)' }}
+    >
+      <Card.Section withBorder>
+        <Grid pt="0.75rem" pb="0.5rem">
+          <Grid.Col mb="0rem" span={4}>
+            <Text pl="sm" mt="sm" fw={800} tt="uppercase" c="tarmac.3">
+              {t('event_label')}
+            </Text>
+          </Grid.Col>
+          <Grid.Col mb="0rem" span={4}>
+            <Center>
+              <Text mt="sm" fw={800}>
+                <Time datetime={event.start_time} />
+              </Text>
+            </Center>
+          </Grid.Col>
+          <Grid.Col mb="0rem" span={4}>
+            <Flex justify="right">
+              <Badge color="tarmac.3" variant="outline" mr="md" mt="0.8rem" size="md">
+                {t('event_duration_summary', { minutes: event.duration_minutes })}
+              </Badge>
+            </Flex>
+          </Grid.Col>
+        </Grid>
+      </Card.Section>
+      <Stack pt="sm" gap="0.25rem">
+        <Text fw={700} fz="lg">
+          {event.name}
+        </Text>
+        {event.description ? (
+          <Text fz="sm" c="dimmed">
+            {event.description}
+          </Text>
+        ) : null}
+      </Stack>
+    </Card>
+  );
+}
+
+type ScheduleEntry = {
+  startTime: string;
+  // Decides the order within one time slot, so the courts stay in order. An event has no
+  // court and therefore comes first.
+  court: string;
+  match: any | null;
+  event: TournamentEvent | null;
+};
+
 export function Schedule({
   t,
   stageItemsLookup,
   matchesLookup,
+  events,
 }: {
   t: Translator;
   stageItemsLookup: any;
   matchesLookup: any;
+  events: TournamentEvent[];
 }) {
   const matches: any[] = Object.values(matchesLookup);
-  const sortedMatches = matches
-    .filter((m1: any) => m1.match.start_time != null)
-    .sort(
-      (m1: any, m2: any) =>
-        compareDateTime(m1.match.start_time, m2.match.start_time) ||
-        // Numeric, so that "Spielfeld 10" doesn't sort before "Spielfeld 2".
-        m1.match.court?.name.localeCompare(m2.match.court?.name, undefined, { numeric: true }),
-    );
+  const entries: ScheduleEntry[] = [
+    ...matches
+      .filter((data: any) => data.match.start_time != null)
+      .map((data: any) => ({
+        startTime: data.match.start_time as string,
+        court: (data.match.court?.name ?? '') as string,
+        match: data,
+        event: null,
+      })),
+    ...events.map((event) => ({
+      startTime: event.start_time,
+      court: '',
+      match: null,
+      event,
+    })),
+  ].sort(
+    (e1, e2) =>
+      compareDateTime(e1.startTime, e2.startTime) ||
+      // Numeric, so that "Spielfeld 10" doesn't sort before "Spielfeld 2".
+      e1.court.localeCompare(e2.court, undefined, { numeric: true }),
+  );
 
   // Over several days a bare "20:30" says nothing about which day it is, so the headings
   // carry the date as well.
-  const multipleDays = spansMultipleDays(sortedMatches.map((data: any) => data.match.start_time));
+  const multipleDays = spansMultipleDays(entries.map((entry) => entry.startTime));
   const headingFor = (startTime: string) =>
     multipleDays ? formatDayAndTime(startTime) : formatTime(startTime);
 
   const rows: React.JSX.Element[] = [];
 
-  for (let c = 0; c < sortedMatches.length; c += 1) {
-    const data = sortedMatches[c];
-    const heading = headingFor(data.match.start_time);
+  for (let c = 0; c < entries.length; c += 1) {
+    const entry = entries[c];
+    const heading = headingFor(entry.startTime);
 
-    if (c < 1 || heading !== headingFor(sortedMatches[c - 1].match.start_time)) {
+    if (c < 1 || heading !== headingFor(entries[c - 1].startTime)) {
       rows.push(
         <Center mt="xl" key={`time-${c}`}>
           <Text
@@ -186,12 +259,16 @@ export function Schedule({
     }
 
     rows.push(
-      <ScheduleRow
-        key={data.match.id}
-        data={data}
-        stageItemsLookup={stageItemsLookup}
-        matchesLookup={matchesLookup}
-      />,
+      entry.event != null ? (
+        <EventRow key={`event-${entry.event.id}`} event={entry.event} />
+      ) : (
+        <ScheduleRow
+          key={entry.match.match.id}
+          data={entry.match}
+          stageItemsLookup={stageItemsLookup}
+          matchesLookup={matchesLookup}
+        />
+      ),
     );
   }
 
@@ -227,6 +304,7 @@ export default function DashboardSchedulePage() {
 
   const swrStagesResponse = getStagesLive(tournamentValid ? tournamentDataFull.id : null);
   const swrCourtsResponse = getCourtsLive(tournamentValid ? tournamentDataFull.id : null);
+  const swrEventsResponse = getTournamentEventsLive(tournamentValid ? tournamentDataFull.id : null);
 
   if (!tournamentValid) {
     return tournamentDataFull;
@@ -265,7 +343,12 @@ export default function DashboardSchedulePage() {
       <Center>
         <Group style={{ maxWidth: '48rem', width: '100%' }} px="1rem">
           <RegistrationBanner tournament={tournamentDataFull} />
-          <Schedule t={t} matchesLookup={matchesLookup} stageItemsLookup={stageItemsLookup} />
+          <Schedule
+            t={t}
+            matchesLookup={matchesLookup}
+            stageItemsLookup={stageItemsLookup}
+            events={swrEventsResponse.data?.data ?? []}
+          />
         </Group>
       </Center>
       <DashboardFooter />

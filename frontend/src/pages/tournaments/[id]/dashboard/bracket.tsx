@@ -13,7 +13,7 @@ import {
 import { NoContent } from '@components/no_content/empty_table_info';
 import { responseIsValid, setTitle } from '@components/utils/util';
 import { StageItemWithRounds, StageWithStageItems } from '@openapi';
-import { getStagesLive } from '@services/adapter';
+import { getStagesLive, getTournamentEventsLive } from '@services/adapter';
 import { getTournamentResponseByEndpointName } from '@services/dashboard';
 import { getStageItemLookup } from '@services/lookups';
 
@@ -23,6 +23,7 @@ export default function DashboardBracketPage() {
   const tournamentValid = !React.isValidElement(tournamentDataFull);
 
   const swrStagesResponse = getStagesLive(tournamentValid ? tournamentDataFull.id : null);
+  const swrEventsResponse = getTournamentEventsLive(tournamentValid ? tournamentDataFull.id : null);
 
   if (!tournamentValid) {
     return tournamentDataFull;
@@ -62,7 +63,11 @@ export default function DashboardBracketPage() {
                 <Title order={3} tt="uppercase" mb="sm" ta="center">
                   {stageItem.name}
                 </Title>
-                <BracketTree stageItem={stageItem} stageItemsLookup={stageItemsLookup} />
+                <BracketTree
+                  stageItem={stageItem}
+                  stageItemsLookup={stageItemsLookup}
+                  events={swrEventsResponse.data?.data ?? []}
+                />
               </div>
             ))}
           </Stack>

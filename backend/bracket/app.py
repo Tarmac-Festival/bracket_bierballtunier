@@ -29,6 +29,7 @@ from bracket.routes import (
     stage_items,
     stages,
     teams,
+    tournament_events,
     tournaments,
     users,
 )
@@ -75,6 +76,7 @@ routers = {
     "Stage Item Inputs": stage_item_inputs.router,
     "Stages": stages.router,
     "Teams": teams.router,
+    "Tournament Events": tournament_events.router,
     "Tournaments": tournaments.router,
     "Users": users.router,
 }

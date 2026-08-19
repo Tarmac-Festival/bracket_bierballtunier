@@ -8,7 +8,7 @@ import {
   spansMultipleDays,
 } from '@components/utils/datetime';
 import { formatStageItemInput } from '@components/utils/stage_item_input';
-import { StageItemWithRounds } from '@openapi';
+import { StageItemWithRounds, TournamentEvent } from '@openapi';
 
 const BOX_WIDTH = 230;
 const BOX_HEIGHT = 78;
@@ -16,11 +16,14 @@ const COLUMN_GAP = 56;
 const SIBLING_GAP = 18;
 const ROUND_HEADER_HEIGHT = 34;
 const DAY_LINE_HEIGHT = 20;
+const EVENT_WIDTH = 46;
 
 type PositionedMatch = {
   id: number;
   centerY: number;
-  column: number;
+  // Left edge in the bracket, since an event band between two rounds makes the columns
+  // unevenly spaced.
+  x: number;
   label1: string;
   label2: string;
   score1: number;
@@ -29,11 +32,9 @@ type PositionedMatch = {
   feeders: number[];
 };
 
-type RoundColumn = {
-  id: number;
-  name: string;
-  day: string | null;
-};
+type Column =
+  | { kind: 'round'; key: string; x: number; name: string; day: string | null }
+  | { kind: 'event'; key: string; x: number; event: TournamentEvent; label: string };
 
 /**
  * Lays the matches out as a real bracket: every match sits vertically centred between the
@@ -42,8 +43,9 @@ type RoundColumn = {
 function layOutRounds(
   stageItem: StageItemWithRounds,
   stageItemsLookup: any,
+  events: TournamentEvent[],
   emptyLabel: string,
-): { matches: PositionedMatch[]; columns: RoundColumn[]; height: number } {
+): { matches: PositionedMatch[]; columns: Column[]; width: number; height: number } {
   const rounds = [...stageItem.rounds]
     .sort((r1, r2) => r1.name.localeCompare(r2.name, undefined, { numeric: true }))
     .filter((round) => round.matches.length > 0);
@@ -53,17 +55,50 @@ function layOutRounds(
   const multipleDays = spansMultipleDays(
     rounds.flatMap((round) => round.matches).map((match: any) => match.start_time),
   );
-  const columns: RoundColumn[] = rounds.map((round) => {
-    const startTimes = round.matches
+  const roundStartTimes = rounds.map((round) =>
+    round.matches
       .map((match: any) => match.start_time)
-      .filter((startTime: string | null): startTime is string => startTime != null);
+      .filter((startTime: string | null): startTime is string => startTime != null)
+      .sort(),
+  );
+  const roundColumns = rounds.map((round, index) => {
+    const startTimes = roundStartTimes[index];
     const withinOneDay = !spansMultipleDays(startTimes);
     return {
-      id: round.id,
+      kind: 'round' as const,
+      key: `round-${round.id}`,
       name: round.name,
       day: multipleDays && withinOneDay && startTimes.length > 0 ? formatDay(startTimes[0]) : null,
     };
   });
+
+  // An event goes after every round that has already started when it begins, so a halftime
+  // show lands between the rounds it separates and an award ceremony after the final. On a
+  // tie the event comes first: it is what pushes the round after it back.
+  const columnsWithoutX = [
+    ...roundColumns.map((column, index) => ({ column, order: index, tieBreak: 0 })),
+    ...events.map((event) => ({
+      column: {
+        kind: 'event' as const,
+        key: `event-${event.id}`,
+        event,
+        label: `${event.name} · ${multipleDays ? formatDayAndTime(event.start_time) : formatTime(event.start_time)}`,
+      },
+      order: roundStartTimes.filter(
+        (startTimes) => startTimes.length > 0 && startTimes[0] <= event.start_time,
+      ).length,
+      tieBreak: -1,
+    })),
+  ].sort((c1, c2) => c1.order - c2.order || c1.tieBreak - c2.tieBreak);
+
+  let nextX = 0;
+  const columns: Column[] = columnsWithoutX.map(({ column }) => {
+    const x = nextX;
+    nextX += (column.kind === 'event' ? EVENT_WIDTH : BOX_WIDTH) + COLUMN_GAP;
+    return { ...column, x };
+  });
+  const width = Math.max(nextX - COLUMN_GAP, 0);
+  const roundX = columns.filter((column) => column.kind === 'round').map((column) => column.x);
 
   const matchById = new Map<number, any>();
   rounds.forEach((round) => {
@@ -120,9 +155,10 @@ function layOutRounds(
   const result: PositionedMatch[] = [];
   let height = 0;
 
-  rounds.forEach((round, column) => {
+  rounds.forEach((round, index) => {
     // Only a round that is split over two days needs the date down in the boxes.
-    const formatStart = columns[column].day == null && multipleDays ? formatDayAndTime : formatTime;
+    const formatStart =
+      roundColumns[index].day == null && multipleDays ? formatDayAndTime : formatTime;
 
     round.matches.forEach((match: any) => {
       const centerY = positions.get(match.id) as number;
@@ -134,7 +170,7 @@ function layOutRounds(
       result.push({
         id: match.id,
         centerY,
-        column,
+        x: roundX[index],
         // The line coming in from the left already says where an unknown team comes from,
         // so there is no need to spell out "winner of match ..." here.
         label1: named1 ?? (match.stage_item_input1_winner_from_match_id != null ? '—' : emptyLabel),
@@ -149,7 +185,7 @@ function layOutRounds(
     });
   });
 
-  return { matches: result, columns, height };
+  return { matches: result, columns, width, height };
 }
 
 function Connectors({ matches }: { matches: PositionedMatch[] }) {
@@ -162,9 +198,9 @@ function Connectors({ matches }: { matches: PositionedMatch[] }) {
           const feeder = byId.get(feederId);
           if (feeder == null) return null;
 
-          const fromX = feeder.column * (BOX_WIDTH + COLUMN_GAP) + BOX_WIDTH;
-          const toX = match.column * (BOX_WIDTH + COLUMN_GAP);
-          const middleX = (fromX + toX) / 2;
+          const fromX = feeder.x + BOX_WIDTH;
+          const toX = match.x;
+          const middleX = toX - COLUMN_GAP / 2;
 
           return (
             <path
@@ -196,7 +232,7 @@ function MatchBox({ match }: { match: PositionedMatch }) {
     <div
       style={{
         position: 'absolute',
-        left: match.column * (BOX_WIDTH + COLUMN_GAP),
+        left: match.x,
         top: match.centerY - BOX_HEIGHT / 2,
         width: BOX_WIDTH,
         height: BOX_HEIGHT,
@@ -227,23 +263,66 @@ function MatchBox({ match }: { match: PositionedMatch }) {
   );
 }
 
+function EventBand({ column, height }: { column: Column & { kind: 'event' }; height: number }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: column.x,
+        top: 0,
+        width: EVENT_WIDTH,
+        height,
+        borderRadius: 8,
+        border: '1px solid var(--tarmac-purple-light)',
+        background: 'rgba(69, 11, 111, 0.92)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <Text
+        fz="xs"
+        fw={700}
+        tt="uppercase"
+        style={{
+          // Bottom to top, so a long name still fits in the narrow band.
+          writingMode: 'vertical-rl',
+          transform: 'rotate(180deg)',
+          whiteSpace: 'nowrap',
+          letterSpacing: '1px',
+        }}
+      >
+        {column.label}
+      </Text>
+    </div>
+  );
+}
+
 export function BracketTree({
   stageItem,
   stageItemsLookup,
+  events,
 }: {
   stageItem: StageItemWithRounds;
   stageItemsLookup: any;
+  events: TournamentEvent[];
 }) {
   const { t } = useTranslation();
-  const { matches, columns, height } = layOutRounds(stageItem, stageItemsLookup, t('empty_slot'));
+  const { matches, columns, width, height } = layOutRounds(
+    stageItem,
+    stageItemsLookup,
+    events,
+    t('empty_slot'),
+  );
 
   if (matches.length < 1) {
     return null;
   }
 
-  const width = columns.length * BOX_WIDTH + (columns.length - 1) * COLUMN_GAP;
   const headerHeight =
-    ROUND_HEADER_HEIGHT + (columns.some((column) => column.day != null) ? DAY_LINE_HEIGHT : 0);
+    ROUND_HEADER_HEIGHT +
+    (columns.some((column) => column.kind === 'round' && column.day != null) ? DAY_LINE_HEIGHT : 0);
 
   return (
     // Centred while it fits, scrollable once the bracket outgrows the screen.
@@ -257,27 +336,29 @@ export function BracketTree({
           margin: '0 auto',
         }}
       >
-        {columns.map((column, index) => (
-          <div
-            key={column.id}
-            style={{
-              position: 'absolute',
-              left: index * (BOX_WIDTH + COLUMN_GAP),
-              top: 0,
-              width: BOX_WIDTH,
-              textAlign: 'center',
-            }}
-          >
-            <Text fw={700} tt="uppercase" fz="sm">
-              {column.name}
-            </Text>
-            {column.day != null ? (
-              <Text fz="xs" c="dimmed">
-                {column.day}
+        {columns.map((column) =>
+          column.kind === 'round' ? (
+            <div
+              key={column.key}
+              style={{
+                position: 'absolute',
+                left: column.x,
+                top: 0,
+                width: BOX_WIDTH,
+                textAlign: 'center',
+              }}
+            >
+              <Text fw={700} tt="uppercase" fz="sm">
+                {column.name}
               </Text>
-            ) : null}
-          </div>
-        ))}
+              {column.day != null ? (
+                <Text fz="xs" c="dimmed">
+                  {column.day}
+                </Text>
+              ) : null}
+            </div>
+          ) : null,
+        )}
 
         <div style={{ position: 'absolute', top: headerHeight, left: 0, width, height }}>
           <svg
@@ -291,6 +372,13 @@ export function BracketTree({
             <MatchBox key={match.id} match={match} />
           ))}
         </div>
+
+        {/* Last, so the band covers the lines running past it instead of being crossed. */}
+        {columns.map((column) =>
+          column.kind === 'event' ? (
+            <EventBand key={column.key} column={column} height={height + headerHeight} />
+          ) : null,
+        )}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ function optionalNumber(value: number | string | null | undefined): number | nul
 
 // Mantine's date pickers yield a 'YYYY-MM-DD HH:mm:ss' string, while initial values
 // are Dayjs objects. dayjs() normalises both (and Date) to an ISO string for the API.
-function isoDate(value: Dayjs | Date | string | null | undefined): string | null {
+export function isoDate(value: Dayjs | Date | string | null | undefined): string | null {
   return value === '' || value == null ? null : dayjs(value).toISOString();
 }
 

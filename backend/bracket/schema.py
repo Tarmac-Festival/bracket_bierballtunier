@@ -236,6 +236,21 @@ courts = Table(
     Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
 )
 
+tournament_events = Table(
+    "tournament_events",
+    metadata,
+    Column("id", BigInteger, primary_key=True, index=True),
+    Column("name", Text, nullable=False),
+    Column("description", Text, nullable=True),
+    Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
+    Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
+    # Anything that takes time next to the matches: a halftime show, an award ceremony.
+    Column("start_time", DateTimeTZ, nullable=False),
+    Column("duration_minutes", Integer, nullable=False),
+    # Whether the matches have to make room for it.
+    Column("blocks_matches", Boolean, nullable=False, server_default="true"),
+)
+
 rankings = Table(
     "rankings",
     metadata,

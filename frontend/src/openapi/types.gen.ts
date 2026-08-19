@@ -869,6 +869,13 @@ export type SingleTeamResponse = {
 };
 
 /**
+ * SingleTournamentEventResponse
+ */
+export type SingleTournamentEventResponse = {
+  data: TournamentEvent;
+};
+
+/**
  * StageActivateBody
  */
 export type StageActivateBody = {
@@ -1654,6 +1661,83 @@ export type TournamentBody = {
  */
 export type TournamentChangeStatusBody = {
   status: TournamentStatus;
+};
+
+/**
+ * TournamentEvent
+ */
+export type TournamentEvent = {
+  /**
+   * Blocks Matches
+   */
+  blocks_matches: boolean;
+  /**
+   * Created
+   */
+  created: string;
+  /**
+   * Description
+   */
+  description: string | null;
+  /**
+   * Duration Minutes
+   */
+  duration_minutes: number;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Start Time
+   */
+  start_time: string;
+  /**
+   * Tournament Id
+   */
+  tournament_id: number;
+};
+
+/**
+ * TournamentEventBody
+ *
+ * Something that happens next to the matches and takes up time: a halftime show, an award
+ * ceremony, a break.
+ */
+export type TournamentEventBody = {
+  /**
+   * Blocks Matches
+   */
+  blocks_matches: boolean;
+  /**
+   * Description
+   */
+  description: string | null;
+  /**
+   * Duration Minutes
+   */
+  duration_minutes: number;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Start Time
+   */
+  start_time: string;
+};
+
+/**
+ * TournamentEventsResponse
+ */
+export type TournamentEventsResponse = {
+  /**
+   * Data
+   */
+  data: Array<TournamentEvent>;
 };
 
 /**
@@ -2502,6 +2586,142 @@ export type UpdateCourtByIdTournamentsTournamentIdCourtsCourtIdPutResponses = {
 
 export type UpdateCourtByIdTournamentsTournamentIdCourtsCourtIdPutResponse =
   UpdateCourtByIdTournamentsTournamentIdCourtsCourtIdPutResponses[keyof UpdateCourtByIdTournamentsTournamentIdCourtsCourtIdPutResponses];
+
+export type GetEventsTournamentsTournamentIdEventsGetData = {
+  body?: never;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/events';
+};
+
+export type GetEventsTournamentsTournamentIdEventsGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetEventsTournamentsTournamentIdEventsGetError =
+  GetEventsTournamentsTournamentIdEventsGetErrors[keyof GetEventsTournamentsTournamentIdEventsGetErrors];
+
+export type GetEventsTournamentsTournamentIdEventsGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: TournamentEventsResponse;
+};
+
+export type GetEventsTournamentsTournamentIdEventsGetResponse =
+  GetEventsTournamentsTournamentIdEventsGetResponses[keyof GetEventsTournamentsTournamentIdEventsGetResponses];
+
+export type CreateEventTournamentsTournamentIdEventsPostData = {
+  body: TournamentEventBody;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/events';
+};
+
+export type CreateEventTournamentsTournamentIdEventsPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type CreateEventTournamentsTournamentIdEventsPostError =
+  CreateEventTournamentsTournamentIdEventsPostErrors[keyof CreateEventTournamentsTournamentIdEventsPostErrors];
+
+export type CreateEventTournamentsTournamentIdEventsPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SingleTournamentEventResponse;
+};
+
+export type CreateEventTournamentsTournamentIdEventsPostResponse =
+  CreateEventTournamentsTournamentIdEventsPostResponses[keyof CreateEventTournamentsTournamentIdEventsPostResponses];
+
+export type DeleteEventTournamentsTournamentIdEventsEventIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+    /**
+     * Event Id
+     */
+    event_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/events/{event_id}';
+};
+
+export type DeleteEventTournamentsTournamentIdEventsEventIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteEventTournamentsTournamentIdEventsEventIdDeleteError =
+  DeleteEventTournamentsTournamentIdEventsEventIdDeleteErrors[keyof DeleteEventTournamentsTournamentIdEventsEventIdDeleteErrors];
+
+export type DeleteEventTournamentsTournamentIdEventsEventIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  200: SuccessResponse;
+};
+
+export type DeleteEventTournamentsTournamentIdEventsEventIdDeleteResponse =
+  DeleteEventTournamentsTournamentIdEventsEventIdDeleteResponses[keyof DeleteEventTournamentsTournamentIdEventsEventIdDeleteResponses];
+
+export type UpdateEventTournamentsTournamentIdEventsEventIdPutData = {
+  body: TournamentEventBody;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+    /**
+     * Event Id
+     */
+    event_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/events/{event_id}';
+};
+
+export type UpdateEventTournamentsTournamentIdEventsEventIdPutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateEventTournamentsTournamentIdEventsEventIdPutError =
+  UpdateEventTournamentsTournamentIdEventsEventIdPutErrors[keyof UpdateEventTournamentsTournamentIdEventsEventIdPutErrors];
+
+export type UpdateEventTournamentsTournamentIdEventsEventIdPutResponses = {
+  /**
+   * Successful Response
+   */
+  200: SingleTournamentEventResponse;
+};
+
+export type UpdateEventTournamentsTournamentIdEventsEventIdPutResponse =
+  UpdateEventTournamentsTournamentIdEventsEventIdPutResponses[keyof UpdateEventTournamentsTournamentIdEventsEventIdPutResponses];
 
 export type UploadLogoTournamentsTournamentIdLogoPostData = {
   body?: BodyUploadLogoTournamentsTournamentIdLogoPost;

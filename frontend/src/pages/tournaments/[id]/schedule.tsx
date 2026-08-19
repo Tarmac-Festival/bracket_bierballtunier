@@ -20,6 +20,7 @@ import { SWRResponse } from 'swr';
 
 import CourtModal from '@components/modals/create_court_modal';
 import MatchModal from '@components/modals/match_modal';
+import { EventsPanel } from '@components/scheduling/events_panel';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { Time, spansMultipleDays } from '@components/utils/datetime';
 import { formatMatchInput1, formatMatchInput2 } from '@components/utils/match';
@@ -28,7 +29,7 @@ import { Translator } from '@components/utils/types';
 import { getTournamentIdFromRouter, responseIsValid } from '@components/utils/util';
 import { Court, CourtsResponse, MatchWithDetails } from '@openapi';
 import TournamentLayout from '@pages/tournaments/_tournament_layout';
-import { getCourts, getStages } from '@services/adapter';
+import { getCourts, getStages, getTournamentEvents } from '@services/adapter';
 import { deleteCourt } from '@services/court';
 import {
   getMatchLookup,
@@ -266,6 +267,7 @@ export default function SchedulePage() {
   const { tournamentData } = getTournamentIdFromRouter();
   const swrStagesResponse = getStages(tournamentData.id);
   const swrCourtsResponse = getCourts(tournamentData.id);
+  const swrEventsResponse = getTournamentEvents(tournamentData.id);
 
   const stageItemsLookup = responseIsValid(swrStagesResponse)
     ? getStageItemLookup(swrStagesResponse)
@@ -349,6 +351,13 @@ export default function SchedulePage() {
           />
         </DragDropContext>
       </Group>
+      <EventsPanel
+        tournamentId={tournamentData.id}
+        swrEventsResponse={swrEventsResponse}
+        onChanged={async () => {
+          await swrStagesResponse.mutate();
+        }}
+      />
     </TournamentLayout>
   );
 }

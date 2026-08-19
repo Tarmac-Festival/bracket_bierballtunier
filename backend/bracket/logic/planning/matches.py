@@ -15,9 +15,46 @@ from bracket.sql.matches import (
     sql_reschedule_match_and_determine_duration_and_margin,
 )
 from bracket.sql.stages import get_full_tournament_details
+from bracket.sql.tournament_events import sql_get_events_of_tournament
 from bracket.sql.tournaments import sql_get_tournament
 from bracket.utils.id_types import CourtId, MatchId, TournamentId
 from bracket.utils.types import assert_some
+
+BlockedPeriods = list[tuple[datetime_utc, datetime_utc]]
+
+
+async def get_blocked_periods(tournament_id: TournamentId) -> BlockedPeriods:
+    """
+    The stretches of time claimed by an event that the matches have to make room for, such
+    as a halftime show or an award ceremony.
+    """
+    events = await sql_get_events_of_tournament(tournament_id)
+    return sorted((event.start_time, event.end_time) for event in events if event.blocks_matches)
+
+
+def start_after_blocked_periods(
+    start_time: datetime_utc, duration_minutes: int, blocked_periods: BlockedPeriods
+) -> datetime_utc:
+    """
+    Pushes a match back until it no longer runs into an event. Repeats, because stepping
+    over one event can land on the next one.
+    """
+    for _ in range(len(blocked_periods)):
+        end_time = start_time + timedelta(minutes=duration_minutes)
+        overlapping = next(
+            (
+                period
+                for period in blocked_periods
+                if start_time < period[1] and period[0] < end_time
+            ),
+            None,
+        )
+        if overlapping is None:
+            break
+
+        start_time = overlapping[1]
+
+    return start_time
 
 
 async def schedule_all_unscheduled_matches(
@@ -25,6 +62,7 @@ async def schedule_all_unscheduled_matches(
 ) -> None:
     tournament = await sql_get_tournament(tournament_id)
     courts = await get_all_courts_in_tournament(tournament_id)
+    blocked_periods = await get_blocked_periods(tournament_id)
 
     if len(stages) < 1 or len(courts) < 1:
         return
@@ -58,9 +96,13 @@ async def schedule_all_unscheduled_matches(
                 for match in round_.matches:
                     court_id = min(
                         court_available_from,
-                        key=lambda id_: max(court_available_from[id_], round_can_start_from),  # noqa: B023
+                        key=lambda id_: max(court_available_from[id_], round_can_start_from),
                     )
-                    start_time = max(court_available_from[court_id], round_can_start_from)
+                    start_time = start_after_blocked_periods(
+                        max(court_available_from[court_id], round_can_start_from),
+                        match.duration_minutes,
+                        blocked_periods,
+                    )
 
                     if match.start_time is None and match.position_in_schedule is None:
                         await sql_reschedule_match_and_determine_duration_and_margin(
@@ -99,6 +141,7 @@ async def reorder_matches_for_court(
     scheduled_matches: list[MatchPosition],
     court_id: CourtId,
     round_start_times: dict[MatchId, datetime_utc] | None = None,
+    blocked_periods: BlockedPeriods | None = None,
 ) -> None:
     matches_this_court = sorted(
         (match_pos for match_pos in scheduled_matches if match_pos.match.court_id == court_id),
@@ -112,6 +155,12 @@ async def reorder_matches_for_court(
         round_start_time = (round_start_times or {}).get(match_pos.match.id)
         if round_start_time is not None:
             last_start_time = max(last_start_time, round_start_time)
+
+        # An event such as a halftime show claims the whole tournament, so the match waits
+        # for it to be over rather than being played alongside it.
+        last_start_time = start_after_blocked_periods(
+            last_start_time, match_pos.match.duration_minutes, blocked_periods or []
+        )
 
         await sql_reschedule_match_and_determine_duration_and_margin(
             court_id,
@@ -158,10 +207,23 @@ async def handle_match_reschedule(
         else:
             scheduled_matches.append(match_pos)
 
-    await reorder_matches_for_court(tournament, scheduled_matches, body.new_court_id)
+    blocked_periods = await get_blocked_periods(tournament.id)
+    await reorder_matches_for_court(
+        tournament, scheduled_matches, body.new_court_id, blocked_periods=blocked_periods
+    )
 
     if body.new_court_id != body.old_court_id:
-        await reorder_matches_for_court(tournament, scheduled_matches, body.old_court_id)
+        await reorder_matches_for_court(
+            tournament, scheduled_matches, body.old_court_id, blocked_periods=blocked_periods
+        )
+
+
+async def reschedule_matches_around_events(tournament_id: TournamentId) -> None:
+    """
+    Called after an event changed: the matches already have their courts and their order,
+    they only have to be moved out of the way of the event.
+    """
+    await update_start_times_of_matches(tournament_id)
 
 
 async def update_start_times_of_matches(tournament_id: TournamentId) -> None:
@@ -178,8 +240,12 @@ async def update_start_times_of_matches(tournament_id: TournamentId) -> None:
         for match in round_.matches
     }
 
+    blocked_periods = await get_blocked_periods(tournament_id)
+
     for court in courts:
-        await reorder_matches_for_court(tournament, scheduled_matches, court.id, round_start_times)
+        await reorder_matches_for_court(
+            tournament, scheduled_matches, court.id, round_start_times, blocked_periods
+        )
 
 
 def get_scheduled_matches(stages: list[StageWithStageItems]) -> list[MatchPosition]:
