@@ -15,6 +15,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconCheck, IconPlus, IconTrash } from '@tabler/icons-react';
+import { TFunction } from 'i18next';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +37,23 @@ function registrationTerms(tournament: Tournament): string[] {
     .filter((line: string) => line.length > 0);
 }
 
+/**
+ * What the API said went wrong, in German where we know the wording. Anything we do not
+ * recognise is passed through as it came, which beats a blank screen.
+ */
+function registrationErrorMessage(t: TFunction, result: any): string {
+  const detail = result?.response?.data?.detail;
+  const text = Array.isArray(detail) ? (detail[0]?.msg ?? '') : `${detail ?? ''}`;
+  const known: { [message: string]: string } = {
+    'The registration password is incorrect': t('registration_password_wrong_error'),
+    'Registration is not open for this tournament': t('registration_closed_message'),
+    'The registration deadline has passed': t('registration_closed_deadline_message'),
+    'This tournament asks every team for a contact person and phone number':
+      t('contact_required_error'),
+  };
+  return known[text] ?? (text.length > 0 ? text : t('registration_failed_error'));
+}
+
 function RegistrationForm({
   tournamentId,
   minSize,
@@ -55,6 +73,7 @@ function RegistrationForm({
   onSuccess: (name: string) => void;
 }) {
   const { t } = useTranslation();
+  const [failure, setFailure] = useState<string | null>(null);
   const form = useForm({
     initialValues: {
       team_name: '',
@@ -94,6 +113,7 @@ function RegistrationForm({
   return (
     <form
       onSubmit={form.onSubmit(async (values) => {
+        setFailure(null);
         const result = await registerTeam(
           tournamentId,
           values.team_name,
@@ -105,7 +125,12 @@ function RegistrationForm({
         );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
+          return;
         }
+
+        // Right above the button that was just pressed: a notification in the corner of a
+        // long form is easy to miss, and on a phone it is off the top of the screen.
+        setFailure(registrationErrorMessage(t, result));
       })}
     >
       <Title order={3} mb="md">
@@ -223,6 +248,12 @@ function RegistrationForm({
             </Text>
           ) : null}
         </Stack>
+      ) : null}
+
+      {failure != null ? (
+        <Alert icon={<IconAlertCircle size={16} />} color="red" radius="md" mt="lg">
+          {failure}
+        </Alert>
       ) : null}
 
       <Button fullWidth size="md" mt="lg" type="submit">

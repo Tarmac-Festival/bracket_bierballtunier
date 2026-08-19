@@ -197,16 +197,26 @@ function layOutRounds(
         ][0] ?? null)
       : entry.column.event.start_time,
   );
+  // Only for a day somebody actually planned: a round with a start time of its own is the
+  // organiser saying "this part is another day". Without that rule a final that runs past
+  // midnight would be split off from the round it belongs to.
+  const plannedDays = new Set(
+    rounds
+      .map((round) => round.start_time)
+      .filter((startTime): startTime is string => startTime != null)
+      .map(formatDay),
+  );
   const dayDividers = columns
     .map((column, index) => {
       const previous = dayOfColumn[index - 1];
       const current = dayOfColumn[index];
-      const crossesIntoANewDay =
+      const crossesIntoAPlannedDay =
         index > 0 &&
         previous != null &&
         current != null &&
-        formatDay(previous) !== formatDay(current);
-      return crossesIntoANewDay ? column.x - m.columnGap / 2 : null;
+        formatDay(previous) !== formatDay(current) &&
+        plannedDays.has(formatDay(current));
+      return crossesIntoAPlannedDay ? column.x - m.columnGap / 2 : null;
     })
     .filter((x): x is number => x != null);
   const roundX = columns.filter((column) => column.kind === 'round').map((column) => column.x);
@@ -485,12 +495,12 @@ export function BracketTree({
             key={`day-${x}`}
             style={{
               position: 'absolute',
-              left: x - 1,
+              left: x - 2,
               top: 0,
-              width: 2,
+              width: 4,
               height: height + headerHeight,
-              borderLeft: '2px dashed var(--tarmac-green)',
-              opacity: 0.7,
+              borderLeft: '4px dashed var(--tarmac-green)',
+              opacity: 0.85,
             }}
           />
         ))}
