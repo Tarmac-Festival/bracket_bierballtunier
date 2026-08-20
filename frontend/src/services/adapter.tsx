@@ -173,7 +173,8 @@ export function getTeamsPaginated(
 
 export function getTeamsLive(tournament_id: number | null): SWRResponse<TeamsWithPlayersResponse> {
   return useSWR(tournament_id == null ? null : `tournaments/${tournament_id}/teams`, fetcher, {
-    refreshInterval: 5_000,
+    // Who is playing barely changes once a tournament is under way, unlike the scores.
+    refreshInterval: 60_000,
   });
 }
 
