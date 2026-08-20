@@ -76,12 +76,15 @@
   }
 }
 
-/* Grows with the title beside it, and never so tall that it pushes the bar open. */
+/* Grows with the title beside it, and never so tall that it pushes the bar open. A logo
+   that brings its own background reads as a badge this way rather than a pasted-on
+   rectangle; one with a transparent background simply sits in the bar. */
 .tournamentLogo {
   height: clamp(rem(34px), 4vw, rem(52px));
   width: auto;
   flex: 0 0 auto;
-  border-radius: rem(6px);
+  border-radius: rem(8px);
+  box-shadow: 0 0 0 rem(1px) light-dark(var(--mantine-color-gray-3), var(--tarmac-purple-light));
 }
 
 .tournamentTitle {
