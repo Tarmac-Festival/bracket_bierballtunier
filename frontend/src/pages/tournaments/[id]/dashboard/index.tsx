@@ -11,6 +11,7 @@ import {
   getTournamentHeadTitle,
 } from '@components/dashboard/layout';
 import { RegistrationBanner } from '@components/dashboard/registration_banner';
+import { TeamLogo } from '@components/info/team_logo';
 import { NoContent } from '@components/no_content/empty_table_info';
 import {
   Time,
@@ -75,9 +76,12 @@ function ScheduleRow({
       <Stack pt="sm">
         <Grid>
           <Grid.Col span="auto" pb="0rem">
-            <Text fw={600} fz="lg">
-              {formatMatchInput1(t, stageItemsLookup, matchesLookup, data.match)}
-            </Text>
+            <Group gap="xs" wrap="nowrap">
+              <TeamLogo team={data.match.stage_item_input1?.team} />
+              <Text fw={600} fz="lg">
+                {formatMatchInput1(t, stageItemsLookup, matchesLookup, data.match)}
+              </Text>
+            </Group>
           </Grid.Col>
           <Grid.Col span="content" pb="0rem">
             <div
@@ -96,9 +100,12 @@ function ScheduleRow({
         </Grid>
         <Grid mb="0rem">
           <Grid.Col span="auto" pb="0rem">
-            <Text fw={600} fz="lg">
-              {formatMatchInput2(t, stageItemsLookup, matchesLookup, data.match)}
-            </Text>
+            <Group gap="xs" wrap="nowrap">
+              <TeamLogo team={data.match.stage_item_input2?.team} />
+              <Text fw={600} fz="lg">
+                {formatMatchInput2(t, stageItemsLookup, matchesLookup, data.match)}
+              </Text>
+            </Group>
           </Grid.Col>
           <Grid.Col span="content" pb="0rem">
             <div

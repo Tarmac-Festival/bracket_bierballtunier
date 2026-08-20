@@ -1,6 +1,8 @@
+import base64
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import aiofiles.os
 import pytest
 from heliclockter import datetime_utc
 
@@ -82,6 +84,7 @@ async def register_team(
     accepted_terms: list[str] | None = None,
     contact_name: str | None = None,
     contact_phone: str | None = None,
+    logo: str | None = None,
 ) -> dict:
     return await send_request(
         HTTPMethod.POST,
@@ -93,6 +96,7 @@ async def register_team(
             "accepted_terms": accepted_terms or [],
             "contact_name": contact_name,
             "contact_phone": contact_phone,
+            "logo": logo,
         },
     )
 
@@ -502,3 +506,42 @@ async def test_the_contact_person_can_be_demanded(
         await assert_row_count_and_clear(players_x_teams, 1)
         await assert_row_count_and_clear(players, 1)
         await assert_row_count_and_clear(teams, 1)
+
+
+# The smallest possible PNG, so the test does not need a fixture on disk.
+TINY_PNG = base64.b64encode(
+    base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    )
+).decode()
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_a_team_can_bring_its_own_logo_along(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context) as tournament:
+        response = await register_team(
+            tournament, "Mit Logo", ["Ann"], logo=f"data:image/png;base64,{TINY_PNG}"
+        )
+
+        logo_path = response["data"]["logo_path"]
+        assert logo_path is not None and logo_path.endswith(".png")
+        assert await aiofiles.os.path.exists(f"static/team-logos/{logo_path}")
+
+        await aiofiles.os.remove(f"static/team-logos/{logo_path}")
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_something_that_is_not_a_picture_is_turned_away(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context) as tournament:
+        not_a_picture = base64.b64encode(b"plain text, definitely not a picture").decode()
+        response = await register_team(tournament, "Boeses Logo", ["Ann"], logo=not_a_picture)
+
+        assert response["detail"] == "The logo has to be a PNG or a JPEG"
+        await assert_row_count_and_clear(teams, 0)

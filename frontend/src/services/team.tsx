@@ -35,6 +35,7 @@ export async function registerTeam(
   accepted_terms?: string[],
   contact_name?: string,
   contact_phone?: string,
+  logo?: string | null,
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/register`, {
@@ -44,6 +45,7 @@ export async function registerTeam(
       accepted_terms: accepted_terms ?? [],
       contact_name: contact_name || null,
       contact_phone: contact_phone || null,
+      logo: logo || null,
     }),
   );
 }

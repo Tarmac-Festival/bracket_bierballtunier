@@ -87,6 +87,8 @@ class TeamRegistrationBody(BaseModelORM):
     password: str | None = None
     # The confirmations the team ticked off, sent back as the text that was shown to them.
     accepted_terms: list[str] = Field(default_factory=list)
+    # An optional team logo as a data URL, shrunk by the browser before it is sent.
+    logo: str | None = Field(default=None, max_length=4 * 1024 * 1024)
     # Optional, so a team can register without one unless the tournament insists.
     contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
     contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None

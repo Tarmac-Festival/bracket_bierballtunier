@@ -1468,6 +1468,10 @@ export type TeamRegistrationBody = {
    */
   contact_phone: string | null;
   /**
+   * Logo
+   */
+  logo: string | null;
+  /**
    * Name
    */
   name: string;

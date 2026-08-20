@@ -2667,6 +2667,18 @@
             ],
             "title": "Contact Phone"
           },
+          "logo": {
+            "anyOf": [
+              {
+                "maxLength": 4194304,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo"
+          },
           "name": {
             "maxLength": 30,
             "minLength": 1,
@@ -2699,6 +2711,7 @@
           "player_names",
           "password",
           "accepted_terms",
+          "logo",
           "contact_name",
           "contact_phone"
         ],

@@ -76,15 +76,14 @@
   }
 }
 
-/* Grows with the title beside it, and never so tall that it pushes the bar open. A logo
-   that brings its own background reads as a badge this way rather than a pasted-on
-   rectangle; one with a transparent background simply sits in the bar. */
+/* Grows with the title beside it, and never so tall that it pushes the bar open. No frame
+   around it: a logo with a transparent background should sit in the bar, not on it. */
 .tournamentLogo {
-  height: clamp(rem(34px), 4vw, rem(52px));
+  height: clamp(rem(40px), 5vw, rem(64px));
   width: auto;
+  max-width: rem(160px);
   flex: 0 0 auto;
   border-radius: rem(8px);
-  box-shadow: 0 0 0 rem(1px) light-dark(var(--mantine-color-gray-3), var(--tarmac-purple-light));
 }
 
 .tournamentTitle {
@@ -94,7 +93,13 @@
   /* Shrinks with the viewport so long tournament names stay on one line. */
   font-size: clamp(rem(18px), 2.4vw, rem(30px));
   line-height: 1.15;
-  background: linear-gradient(90deg, var(--mantine-color-white) 30%, var(--tarmac-green) 100%);
+  /* The gradient has to start from whatever the header is not: on a light header a white
+     first half of the name is simply not there. */
+  background: linear-gradient(
+    90deg,
+    light-dark(var(--mantine-color-dark-9), var(--mantine-color-white)) 30%,
+    light-dark(var(--tarmac-purple), var(--tarmac-green)) 100%
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;

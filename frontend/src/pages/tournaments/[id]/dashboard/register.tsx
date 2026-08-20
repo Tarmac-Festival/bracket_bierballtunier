@@ -4,8 +4,10 @@ import {
   Button,
   Checkbox,
   Container,
+  FileInput,
   Grid,
   Group,
+  Image,
   Paper,
   PasswordInput,
   Stack,
@@ -14,7 +16,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconAlertCircle, IconCheck, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconAlertCircle, IconCheck, IconPhoto, IconPlus, IconTrash } from '@tabler/icons-react';
 import { TFunction } from 'i18next';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { DashboardFooter } from '@components/dashboard/footer';
 import { DoubleHeader, getTournamentHeadTitle } from '@components/dashboard/layout';
 import { RichText } from '@components/dashboard/rules_content';
+import { shrinkToDataUrl } from '@components/utils/image';
 import { registrationIsOpen } from '@components/utils/tournament';
 import { setTitle } from '@components/utils/util';
 import { Tournament } from '@openapi';
@@ -74,6 +77,7 @@ function RegistrationForm({
 }) {
   const { t } = useTranslation();
   const [failure, setFailure] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const form = useForm({
     initialValues: {
       team_name: '',
@@ -82,6 +86,7 @@ function RegistrationForm({
       accepted_terms: terms.map(() => false),
       contact_name: '',
       contact_phone: '',
+      logo: null as string | null,
     },
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
@@ -122,6 +127,7 @@ function RegistrationForm({
           terms,
           values.contact_name,
           values.contact_phone,
+          values.logo,
         );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
@@ -248,6 +254,27 @@ function RegistrationForm({
             </Text>
           ) : null}
         </Stack>
+      ) : null}
+
+      <FileInput
+        clearable
+        size="md"
+        mt="lg"
+        accept="image/png,image/jpeg"
+        leftSection={<IconPhoto size={18} />}
+        label={t('team_logo_label')}
+        description={t('team_logo_description')}
+        placeholder={t('team_logo_placeholder')}
+        value={logoFile}
+        onChange={async (file) => {
+          setLogoFile(file);
+          // Shrunk here rather than on the server: a photo from a phone is several
+          // megabytes, and the form travels over the festival's mobile data.
+          form.setFieldValue('logo', file == null ? null : await shrinkToDataUrl(file));
+        }}
+      />
+      {form.values.logo != null ? (
+        <Image src={form.values.logo} alt="" h={80} w="auto" fit="contain" mt="xs" />
       ) : null}
 
       {failure != null ? (
