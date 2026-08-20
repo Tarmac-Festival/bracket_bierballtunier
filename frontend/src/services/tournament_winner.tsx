@@ -6,6 +6,8 @@ export type TournamentWinnerFields = {
   description: string | null;
   // Only sent when a new picture was picked; leaving it out keeps the one already stored.
   logo: string | null;
+  easter_egg: boolean;
+  easter_egg_image: string | null;
 };
 
 function body(fields: TournamentWinnerFields) {
@@ -15,6 +17,8 @@ function body(fields: TournamentWinnerFields) {
     description:
       fields.description != null && fields.description.length > 0 ? fields.description : null,
     logo: fields.logo,
+    easter_egg: fields.easter_egg,
+    easter_egg_image: fields.easter_egg_image,
   };
 }
 

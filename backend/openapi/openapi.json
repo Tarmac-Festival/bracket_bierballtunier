@@ -3631,6 +3631,22 @@
             ],
             "title": "Description"
           },
+          "easter_egg": {
+            "default": false,
+            "title": "Easter Egg",
+            "type": "boolean"
+          },
+          "easter_egg_image_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Easter Egg Image Path"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -3666,6 +3682,8 @@
           "name",
           "description",
           "logo_path",
+          "easter_egg",
+          "easter_egg_image_path",
           "id"
         ],
         "title": "TournamentWinner",
@@ -3684,6 +3702,23 @@
               }
             ],
             "title": "Description"
+          },
+          "easter_egg": {
+            "default": false,
+            "title": "Easter Egg",
+            "type": "boolean"
+          },
+          "easter_egg_image": {
+            "anyOf": [
+              {
+                "maxLength": 4194304,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Easter Egg Image"
           },
           "logo": {
             "anyOf": [
@@ -3714,7 +3749,9 @@
           "year",
           "name",
           "description",
-          "logo"
+          "logo",
+          "easter_egg",
+          "easter_egg_image"
         ],
         "title": "TournamentWinnerBody",
         "type": "object"

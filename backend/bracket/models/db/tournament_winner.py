@@ -16,6 +16,10 @@ class TournamentWinnerBody(BaseModelORM):
     description: str | None = None
     # An optional picture as a data URL, shrunk by the browser before it is sent.
     logo: str | None = Field(default=None, max_length=4 * 1024 * 1024)
+    # Whether three clicks on this winner's logo lead somewhere, and what the first scene
+    # of that somewhere looks like.
+    easter_egg: bool = False
+    easter_egg_image: str | None = Field(default=None, max_length=4 * 1024 * 1024)
 
 
 class TournamentWinnerInsertable(BaseModelORM):
@@ -25,6 +29,8 @@ class TournamentWinnerInsertable(BaseModelORM):
     name: str
     description: str | None = None
     logo_path: str | None = None
+    easter_egg: bool = False
+    easter_egg_image_path: str | None = None
 
 
 class TournamentWinner(TournamentWinnerInsertable):

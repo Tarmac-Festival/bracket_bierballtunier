@@ -1965,6 +1965,14 @@ export type TournamentWinner = {
    */
   description: string | null;
   /**
+   * Easter Egg
+   */
+  easter_egg: boolean;
+  /**
+   * Easter Egg Image Path
+   */
+  easter_egg_image_path: string | null;
+  /**
    * Id
    */
   id: number;
@@ -1997,6 +2005,14 @@ export type TournamentWinnerBody = {
    * Description
    */
   description: string | null;
+  /**
+   * Easter Egg
+   */
+  easter_egg: boolean;
+  /**
+   * Easter Egg Image
+   */
+  easter_egg_image: string | null;
   /**
    * Logo
    */

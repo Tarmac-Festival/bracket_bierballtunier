@@ -185,6 +185,9 @@ tournament_winners = Table(
     Column("name", Text, nullable=False),
     Column("description", Text, nullable=True),
     Column("logo_path", Text, nullable=True),
+    # Three clicks on this winner's logo open a small adventure. Off unless armed.
+    Column("easter_egg", Boolean, nullable=False, server_default="false"),
+    Column("easter_egg_image_path", Text, nullable=True),
 )
 
 players = Table(

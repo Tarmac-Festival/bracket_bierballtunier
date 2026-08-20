@@ -1,4 +1,14 @@
-import { Button, FileInput, Image, Modal, NumberInput, TextInput, Textarea } from '@mantine/core';
+import {
+  Button,
+  Checkbox,
+  Divider,
+  FileInput,
+  Image,
+  Modal,
+  NumberInput,
+  TextInput,
+  Textarea,
+} from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconPhoto } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -25,12 +35,15 @@ export function TournamentWinnerModal({
 }) {
   const { t } = useTranslation();
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [eggFile, setEggFile] = useState<File | null>(null);
   const form = useForm({
     initialValues: {
       year: winner?.year ?? new Date().getFullYear() - 1,
       name: winner?.name ?? '',
       description: winner?.description ?? '',
       logo: null as string | null,
+      easter_egg: winner?.easter_egg ?? false,
+      easter_egg_image: null as string | null,
     },
     validate: {
       name: (value: string) => (value.length > 0 ? null : t('too_short_name_validation')),
@@ -41,6 +54,10 @@ export function TournamentWinnerModal({
 
   const storedLogo =
     winner?.logo_path != null ? `${getBaseApiUrl()}/static/winner-logos/${winner.logo_path}` : null;
+  const storedEggImage =
+    winner?.easter_egg_image_path != null
+      ? `${getBaseApiUrl()}/static/easter-egg-images/${winner.easter_egg_image_path}`
+      : null;
 
   return (
     <Modal
@@ -55,6 +72,8 @@ export function TournamentWinnerModal({
             name: values.name,
             description: values.description,
             logo: values.logo,
+            easter_egg: values.easter_egg,
+            easter_egg_image: values.easter_egg_image,
           };
           if (winner != null) {
             await updateTournamentWinner(tournamentId, winner.id, fields);
@@ -111,6 +130,44 @@ export function TournamentWinnerModal({
             fit="contain"
             mt="xs"
           />
+        ) : null}
+
+        <Divider my="lg" />
+        <Checkbox
+          label={t('easter_egg_label')}
+          description={t('easter_egg_description')}
+          {...form.getInputProps('easter_egg', { type: 'checkbox' })}
+        />
+        {form.values.easter_egg ? (
+          <>
+            <FileInput
+              clearable
+              mt="sm"
+              accept="image/png,image/jpeg"
+              leftSection={<IconPhoto size={18} />}
+              label={t('easter_egg_image_label')}
+              description={t('easter_egg_image_description')}
+              placeholder={t('team_logo_placeholder')}
+              value={eggFile}
+              onChange={async (file) => {
+                setEggFile(file);
+                form.setFieldValue(
+                  'easter_egg_image',
+                  file == null ? null : await shrinkToDataUrl(file),
+                );
+              }}
+            />
+            {form.values.easter_egg_image != null || storedEggImage != null ? (
+              <Image
+                src={form.values.easter_egg_image ?? storedEggImage}
+                alt=""
+                h={80}
+                w="auto"
+                fit="contain"
+                mt="xs"
+              />
+            ) : null}
+          </>
         ) : null}
 
         <Button fullWidth mt="lg" color="green" type="submit">

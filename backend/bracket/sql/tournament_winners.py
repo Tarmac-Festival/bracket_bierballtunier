@@ -36,13 +36,17 @@ async def sql_update_winner(
     name: str,
     description: str | None,
     logo_path: str | None,
+    easter_egg: bool,
+    easter_egg_image_path: str | None,
 ) -> None:
     query = """
         UPDATE tournament_winners
         SET year = :year,
             name = :name,
             description = :description,
-            logo_path = :logo_path
+            logo_path = :logo_path,
+            easter_egg = :easter_egg,
+            easter_egg_image_path = :easter_egg_image_path
         WHERE tournament_winners.tournament_id = :tournament_id
         AND tournament_winners.id = :winner_id
         """
@@ -55,6 +59,8 @@ async def sql_update_winner(
             "name": name,
             "description": description,
             "logo_path": logo_path,
+            "easter_egg": easter_egg,
+            "easter_egg_image_path": easter_egg_image_path,
         },
     )
 

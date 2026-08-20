@@ -44,18 +44,16 @@ async def _get_winner_or_404(
     return winner
 
 
-async def _logo_path_for(
-    body: TournamentWinnerBody, existing: TournamentWinner | None
-) -> str | None:
+async def _picture_path_for(sent: str | None, existing: str | None, folder: str) -> str | None:
     """
-    A logo is only replaced when a new one was picked; leaving the field alone keeps the
-    picture that is already there.
+    A picture is only replaced when a new one was picked; leaving the field alone keeps the
+    one that is already there.
     """
-    if body.logo is None:
-        return existing.logo_path if existing is not None else None
+    if sent is None:
+        return existing
 
     try:
-        return await save_uploaded_logo(body.logo, "winner-logos")
+        return await save_uploaded_logo(sent, folder)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -83,7 +81,11 @@ async def create_winner(
             year=winner_body.year,
             name=winner_body.name,
             description=winner_body.description,
-            logo_path=await _logo_path_for(winner_body, None),
+            logo_path=await _picture_path_for(winner_body.logo, None, "winner-logos"),
+            easter_egg=winner_body.easter_egg,
+            easter_egg_image_path=await _picture_path_for(
+                winner_body.easter_egg_image, None, "easter-egg-images"
+            ),
         ).model_dump(),
     )
     return SingleTournamentWinnerResponse(
@@ -109,7 +111,11 @@ async def update_winner(
         winner_body.year,
         winner_body.name,
         winner_body.description,
-        await _logo_path_for(winner_body, existing),
+        await _picture_path_for(winner_body.logo, existing.logo_path, "winner-logos"),
+        winner_body.easter_egg,
+        await _picture_path_for(
+            winner_body.easter_egg_image, existing.easter_egg_image_path, "easter-egg-images"
+        ),
     )
     return SingleTournamentWinnerResponse(
         data=assert_some(await sql_get_winner(tournament_id, winner_id))
