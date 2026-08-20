@@ -11,7 +11,7 @@ from heliclockter import datetime_utc
 
 from bracket.config import config
 from bracket.database import database
-from bracket.logic.logo_upload import save_uploaded_logo
+from bracket.logic.logo_upload import remove_uploaded_logo, save_uploaded_logo
 from bracket.logic.privacy import hide_contact_details_in_teams
 from bracket.logic.ranking.statistics import START_ELO
 from bracket.logic.rate_limit import check_registration_rate_limit
@@ -185,6 +185,8 @@ async def delete_team(
             detail="This team is already assigned to a stage item, remove it from there "
             "before deleting the team",
         )
+
+    await remove_uploaded_logo(team.logo_path, "team-logos")
 
     with check_foreign_key_violation(
         {

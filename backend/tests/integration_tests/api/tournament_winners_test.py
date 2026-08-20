@@ -74,8 +74,9 @@ async def test_a_winner_keeps_its_picture_when_only_the_text_is_edited(
         await send_auth_request(
             HTTPMethod.DELETE, f"tournaments/{tournament_id}/winners/{winner_id}", auth_context
         )
-        if logo_path is not None:
-            await aiofiles.os.remove(f"static/winner-logos/{logo_path}")
+
+    # Deleting the entry takes its picture with it rather than leaving it on disk forever.
+    assert not await aiofiles.os.path.exists(f"static/winner-logos/{logo_path}")
 
 
 @pytest.mark.asyncio(loop_scope="session")

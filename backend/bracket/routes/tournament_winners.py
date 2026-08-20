@@ -4,7 +4,7 @@ from starlette import status
 
 from bracket.config import config
 from bracket.database import database
-from bracket.logic.logo_upload import save_uploaded_logo
+from bracket.logic.logo_upload import remove_uploaded_logo, save_uploaded_logo
 from bracket.models.db.tournament import Tournament
 from bracket.models.db.tournament_winner import (
     TournamentWinner,
@@ -129,6 +129,8 @@ async def delete_winner(
     _: UserPublic = Depends(user_authenticated_for_tournament),
     __: Tournament = Depends(disallow_archived_tournament),
 ) -> SuccessResponse:
-    await _get_winner_or_404(tournament_id, winner_id)
+    winner = await _get_winner_or_404(tournament_id, winner_id)
+    await remove_uploaded_logo(winner.logo_path, "winner-logos")
+    await remove_uploaded_logo(winner.easter_egg_image_path, "easter-egg-images")
     await sql_delete_winner(tournament_id, winner_id)
     return SuccessResponse()

@@ -50,3 +50,17 @@ async def save_uploaded_logo(data_url: str | None, folder: str) -> str | None:
         await f.write(contents)
 
     return filename
+
+
+async def remove_uploaded_logo(filename: str | None, folder: str) -> None:
+    """
+    Deletes a picture that nothing points at any more. A missing file is not a problem: the
+    point is that it is gone.
+    """
+    if filename is None:
+        return
+
+    try:
+        await aiofiles.os.remove(f"static/{folder}/{filename}")
+    except FileNotFoundError:
+        pass

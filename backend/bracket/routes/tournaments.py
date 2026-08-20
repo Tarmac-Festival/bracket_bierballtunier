@@ -8,6 +8,7 @@ from starlette import status
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.logo_upload import remove_uploaded_logo
 from bracket.logic.planning.matches import update_start_times_of_matches
 from bracket.logic.subscriptions import check_requirement
 from bracket.logic.tournaments import get_tournament_logo_path
@@ -34,7 +35,10 @@ from bracket.sql.rankings import (
     sql_delete_ranking,
 )
 from bracket.sql.tournament_events import sql_delete_events_of_tournament
-from bracket.sql.tournament_winners import sql_delete_winners_of_tournament
+from bracket.sql.tournament_winners import (
+    sql_delete_winners_of_tournament,
+    sql_get_winners_of_tournament,
+)
 from bracket.sql.tournaments import (
     sql_create_tournament,
     sql_delete_tournament,
@@ -143,8 +147,11 @@ async def delete_tournament(
         await sql_delete_ranking(tournament_id, ranking.id)
 
     # Events and past winners belong to the tournament and to nothing else, so they go
-    # with it.
+    # with it, pictures included.
     await sql_delete_events_of_tournament(tournament_id)
+    for winner in await sql_get_winners_of_tournament(tournament_id):
+        await remove_uploaded_logo(winner.logo_path, "winner-logos")
+        await remove_uploaded_logo(winner.easter_egg_image_path, "easter-egg-images")
     await sql_delete_winners_of_tournament(tournament_id)
 
     with check_foreign_key_violation(

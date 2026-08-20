@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from starlette.exceptions import HTTPException
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.responses import JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
@@ -124,6 +125,12 @@ app = FastAPI(
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
 )
+
+# The dashboard asks for the whole tournament every few seconds so a score shows up on
+# everybody's phone. That answer is JSON and compresses to a fraction of itself, which is
+# the difference between a lot of mobile data and very little — without anyone waiting
+# longer for a result.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
