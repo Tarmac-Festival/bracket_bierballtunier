@@ -21,10 +21,13 @@ export function TeamLogo({
     <Image
       src={`${getBaseApiUrl()}/static/team-logos/${team.logo_path}`}
       alt=""
-      w={size}
       h={size}
+      w="auto"
+      // Contained, not cropped: a wide wordmark squeezed into a square comes out as a
+      // fragment of itself. It is given room to be wide, within reason.
+      maw={size * 2.5}
+      fit="contain"
       radius="sm"
-      fit="cover"
       style={{ flex: '0 0 auto' }}
     />
   );

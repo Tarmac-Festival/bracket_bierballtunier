@@ -94,8 +94,13 @@
   font-size: clamp(rem(18px), 2.4vw, rem(30px));
   line-height: 1.15;
   /* The gradient has to start from whatever the header is not: on a light header a white
-     first half of the name is simply not there. */
-  background: linear-gradient(
+     first half of the name is simply not there.
+
+     background-image, never the `background` shorthand: light-dark() is compiled into a
+     second, more specific rule per colour scheme, and the shorthand there would reset
+     background-clip to border-box — painting the gradient over the whole box instead of
+     through the letters. */
+  background-image: linear-gradient(
     90deg,
     light-dark(var(--mantine-color-dark-9), var(--mantine-color-white)) 30%,
     light-dark(var(--tarmac-purple), var(--tarmac-green)) 100%
