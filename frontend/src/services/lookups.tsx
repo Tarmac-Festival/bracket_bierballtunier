@@ -77,6 +77,37 @@ export function getStageItemTeamsLookup(swrStagesResponse: SWRResponse) {
   return Object.fromEntries(result);
 }
 
+export type TeamRecord = { wins: number; draws: number; losses: number; points: number };
+
+/**
+ * What every team has achieved so far, keyed by team id. A team that plays a group phase and
+ * then a knockout appears in both, so the two are added up: this is its record in the
+ * tournament, not in one part of it.
+ */
+export function getTeamRecordLookup(swrStagesResponse: SWRResponse): {
+  [teamId: number]: TeamRecord;
+} {
+  const records: { [teamId: number]: TeamRecord } = {};
+  if (swrStagesResponse?.data == null) return records;
+
+  swrStagesResponse.data.data.forEach((stage: StageWithStageItems) =>
+    stage.stage_items.forEach((stageItem) =>
+      stageItem.inputs.forEach((input) => {
+        if (!('team' in input) || input.team == null) return;
+
+        const sofar = records[input.team.id] ?? { wins: 0, draws: 0, losses: 0, points: 0 };
+        records[input.team.id] = {
+          wins: sofar.wins + input.wins,
+          draws: sofar.draws + input.draws,
+          losses: sofar.losses + input.losses,
+          points: sofar.points + parseFloat(input.points),
+        };
+      }),
+    ),
+  );
+  return records;
+}
+
 export function getMatchLookup(swrStagesResponse: SWRResponse) {
   let result: any[] = [];
 

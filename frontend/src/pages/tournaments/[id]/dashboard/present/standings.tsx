@@ -7,10 +7,10 @@ import {
   TournamentTitle,
   getTournamentHeadTitle,
 } from '@components/dashboard/layout';
+import { StandingsContent } from '@components/tables/standings_content';
 import RequestErrorAlert from '@components/utils/error_alert';
 import { TableSkeletonTwoColumns } from '@components/utils/skeletons';
 import { setTitle } from '@components/utils/util';
-import { StandingsContent } from '@pages/tournaments/[id]/dashboard/standings';
 import { getStagesLive, getTeamsLive } from '@services/adapter';
 import { getTournamentResponseByEndpointName } from '@services/dashboard';
 
