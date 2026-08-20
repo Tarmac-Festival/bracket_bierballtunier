@@ -65,30 +65,83 @@ export function HangarOutside() {
 }
 
 export function HangarInside() {
+  // Ten rings of the barrel vault, running away from the viewer: pale ribs with the dark
+  // between them, the way the real one is lit.
+  const ribs = Array.from({ length: 10 }, (_, i) => {
+    const t = i / 9;
+    const left = 10 + t * 185;
+    const right = 490 - t * 185;
+    const base = 320 - t * 82;
+    const apex = 30 + t * 118;
+    // Control point chosen so the arch peaks exactly at `apex`.
+    return {
+      d: `M${left} ${base} Q250 ${2 * apex - base} ${right} ${base}`,
+      width: 9 - t * 6,
+    };
+  });
+
   return (
     <svg viewBox="0 0 500 320" width="100%" role="img" aria-hidden>
-      <rect width="500" height="320" fill={DARKNESS} />
+      <rect width="500" height="320" fill="#191c1e" />
 
-      {/* Ribs of the vault, running away from you. */}
-      {[0, 1, 2, 3, 4].map((rib) => {
-        const inset = rib * 34;
-        return (
-          <path
-            key={rib}
-            d={`M${40 + inset} 320 L${40 + inset} ${170 + rib * 12} Q250 ${
-              70 + rib * 26
-            } ${460 - inset} ${170 + rib * 12} L${460 - inset} 320`}
-            fill="none"
-            stroke="#20262b"
-            strokeWidth="3"
-          />
-        );
-      })}
+      {/* The far wall, whitewashed brick, with the way on cut into it. */}
+      <rect x="195" y="148" width="110" height="92" fill="#cdc7b8" />
+      <rect x="195" y="148" width="110" height="92" fill="#000" opacity="0.25" />
+      <rect x="228" y="170" width="48" height="70" fill="#0d0f11" />
+      <rect x="222" y="166" width="60" height="6" fill="#4a4038" />
 
-      {/* Daylight at the far end: the way out, and the way on. */}
-      <ellipse cx="250" cy="215" rx="46" ry="58" fill="#5d6b52" opacity="0.35" />
-      <ellipse cx="250" cy="220" rx="30" ry="40" fill="#8fae74" opacity="0.55" />
-      <ellipse cx="250" cy="225" rx="16" ry="24" fill="#cfe3b8" opacity="0.75" />
+      <path d="M0 320 L195 240 L305 240 L500 320 Z" fill="#3a3f42" />
+
+      {ribs.map((rib) => (
+        <path
+          key={rib.d}
+          d={rib.d}
+          fill="none"
+          stroke="#ded8ca"
+          strokeWidth={rib.width}
+          opacity="0.85"
+        />
+      ))}
+
+      {/* The light rig washing the left-hand side, green through to purple. */}
+      <g strokeLinecap="round" fill="none" opacity="0.55">
+        <path d="M16 318 Q30 188 78 96" stroke="#4fc924" strokeWidth="13" />
+        <path d="M44 318 Q58 194 100 110" stroke="#22d3ee" strokeWidth="12" />
+        <path d="M72 318 Q86 200 122 124" stroke="#3b82f6" strokeWidth="11" />
+        <path d="M100 318 Q114 206 144 138" stroke="#8f6da9" strokeWidth="10" />
+      </g>
+    </svg>
+  );
+}
+
+export function Corridor() {
+  return (
+    <svg viewBox="0 0 500 320" width="100%" role="img" aria-hidden>
+      <defs>
+        <linearGradient id="daylight" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0%" stopColor="#cfe3b8" />
+          <stop offset="55%" stopColor="#6f9457" />
+          <stop offset="100%" stopColor="#33452b" />
+        </linearGradient>
+      </defs>
+
+      <rect width="500" height="320" fill="#14171a" />
+
+      {/* The way out is not ahead: the passage gives way along its whole right side. */}
+      <path d="M500 0 L330 95 L330 240 L500 320 Z" fill="url(#daylight)" />
+      <g fill="#2f3a29" opacity="0.8">
+        <rect x="352" y="70" width="16" height="200" />
+        <rect x="396" y="46" width="20" height="240" />
+        <rect x="452" y="20" width="24" height="290" />
+      </g>
+
+      <path d="M0 0 L170 95 L170 240 L0 320 Z" fill="#2a2e31" />
+      <path d="M0 0 L500 0 L330 95 L170 95 Z" fill="#1d2124" />
+      <path d="M0 320 L170 240 L330 240 L500 320 Z" fill="#3a3f42" />
+
+      {/* Dead end straight on. */}
+      <rect x="170" y="95" width="160" height="145" fill="#22262a" />
+      <rect x="170" y="95" width="160" height="145" fill="#000" opacity="0.3" />
     </svg>
   );
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   BucketReward,
+  Corridor,
   Digging,
   Forest,
   HangarInside,
@@ -13,12 +14,12 @@ import {
 // How many swings of the spade it takes.
 const DIGS = 4;
 
-type Scene = 'outside' | 'inside' | 'forest' | 'digging' | 'reward';
+type Scene = 'outside' | 'inside' | 'corridor' | 'forest' | 'digging' | 'reward';
 
 /**
- * The walk that opens after three clicks on a winner's logo: up to the hangar, through it,
- * out the back into the wood, and — for whoever spots the mark on the right tree — down
- * into the ground after what is buried there.
+ * The walk that opens after three clicks on a winner's logo: up to the hangar, in through
+ * the vault, out the door at the back into a passage that gives way to the right, into the
+ * wood — and there, for whoever spots the mark on the right tree, down into the ground.
  */
 export function EasterEggAdventure({
   opened,
@@ -67,6 +68,11 @@ export function EasterEggAdventure({
     inside: {
       picture: <HangarInside />,
       caption: t('easter_egg_inside'),
+      onClick: () => setScene('corridor'),
+    },
+    corridor: {
+      picture: <Corridor />,
+      caption: t('easter_egg_corridor'),
       onClick: () => setScene('forest'),
     },
     forest: {
