@@ -139,9 +139,19 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
           href={`/tournaments/${endpoint}/dashboard`}
           className={classes.titleButton}
         >
-          <Title lineClamp={1} className={classes.tournamentTitle}>
-            {tournamentData.name}
-          </Title>
+          <Group gap="sm" wrap="nowrap">
+            {tournamentData.logo_path ? (
+              <Image
+                src={`${getBaseApiUrl()}/static/tournament-logos/${tournamentData.logo_path}`}
+                alt=""
+                fit="contain"
+                className={classes.tournamentLogo}
+              />
+            ) : null}
+            <Title lineClamp={1} className={classes.tournamentTitle}>
+              {tournamentData.name}
+            </Title>
+          </Group>
         </UnstyledButton>
         <Box className={classes.links}>
           <Group gap={0} className={classes.mainLinks}>
