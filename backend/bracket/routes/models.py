@@ -13,6 +13,7 @@ from bracket.models.db.stage_item_inputs import (
 from bracket.models.db.team import FullTeamWithPlayers, Team
 from bracket.models.db.tournament import Tournament
 from bracket.models.db.tournament_event import TournamentEvent
+from bracket.models.db.tournament_winner import TournamentWinner
 from bracket.models.db.user import UserPublic
 from bracket.models.db.util import StageWithStageItems
 from bracket.routes.auth import Token
@@ -102,6 +103,14 @@ class TournamentEventsResponse(DataResponse[list[TournamentEvent]]):
 
 
 class SingleTournamentEventResponse(DataResponse[TournamentEvent]):
+    pass
+
+
+class TournamentWinnersResponse(DataResponse[list[TournamentWinner]]):
+    pass
+
+
+class SingleTournamentWinnerResponse(DataResponse[TournamentWinner]):
     pass
 
 

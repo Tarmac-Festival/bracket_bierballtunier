@@ -182,6 +182,10 @@ export type FullTeamWithPlayers = {
    */
   created: string;
   /**
+   * Description
+   */
+  description: string | null;
+  /**
    * Draws
    */
   draws: number;
@@ -884,6 +888,13 @@ export type SingleTournamentEventResponse = {
 };
 
 /**
+ * SingleTournamentWinnerResponse
+ */
+export type SingleTournamentWinnerResponse = {
+  data: TournamentWinner;
+};
+
+/**
  * StageActivateBody
  */
 export type StageActivateBody = {
@@ -1360,6 +1371,10 @@ export type Team = {
    */
   created: string;
   /**
+   * Description
+   */
+  description: string | null;
+  /**
    * Draws
    */
   draws: number;
@@ -1414,6 +1429,10 @@ export type TeamBody = {
    */
   contact_phone: string | null;
   /**
+   * Description
+   */
+  description: string | null;
+  /**
    * Name
    */
   name: string;
@@ -1467,6 +1486,10 @@ export type TeamRegistrationBody = {
    * Contact Phone
    */
   contact_phone: string | null;
+  /**
+   * Description
+   */
+  description: string | null;
   /**
    * Logo
    */
@@ -1927,6 +1950,75 @@ export type TournamentUpdateBody = {
    * Team Size Min
    */
   team_size_min: number;
+};
+
+/**
+ * TournamentWinner
+ */
+export type TournamentWinner = {
+  /**
+   * Created
+   */
+  created: string;
+  /**
+   * Description
+   */
+  description: string | null;
+  /**
+   * Id
+   */
+  id: number;
+  /**
+   * Logo Path
+   */
+  logo_path: string | null;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Tournament Id
+   */
+  tournament_id: number;
+  /**
+   * Year
+   */
+  year: number;
+};
+
+/**
+ * TournamentWinnerBody
+ *
+ * Somebody who won in an earlier year, kept next to this year's tournament so the
+ * dashboard can show what came before.
+ */
+export type TournamentWinnerBody = {
+  /**
+   * Description
+   */
+  description: string | null;
+  /**
+   * Logo
+   */
+  logo: string | null;
+  /**
+   * Name
+   */
+  name: string;
+  /**
+   * Year
+   */
+  year: number;
+};
+
+/**
+ * TournamentWinnersResponse
+ */
+export type TournamentWinnersResponse = {
+  /**
+   * Data
+   */
+  data: Array<TournamentWinner>;
 };
 
 /**
@@ -4275,6 +4367,142 @@ export type CreateMultipleTeamsTournamentsTournamentIdTeamsMultiPostResponses = 
 
 export type CreateMultipleTeamsTournamentsTournamentIdTeamsMultiPostResponse =
   CreateMultipleTeamsTournamentsTournamentIdTeamsMultiPostResponses[keyof CreateMultipleTeamsTournamentsTournamentIdTeamsMultiPostResponses];
+
+export type GetWinnersTournamentsTournamentIdWinnersGetData = {
+  body?: never;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/winners';
+};
+
+export type GetWinnersTournamentsTournamentIdWinnersGetErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type GetWinnersTournamentsTournamentIdWinnersGetError =
+  GetWinnersTournamentsTournamentIdWinnersGetErrors[keyof GetWinnersTournamentsTournamentIdWinnersGetErrors];
+
+export type GetWinnersTournamentsTournamentIdWinnersGetResponses = {
+  /**
+   * Successful Response
+   */
+  200: TournamentWinnersResponse;
+};
+
+export type GetWinnersTournamentsTournamentIdWinnersGetResponse =
+  GetWinnersTournamentsTournamentIdWinnersGetResponses[keyof GetWinnersTournamentsTournamentIdWinnersGetResponses];
+
+export type CreateWinnerTournamentsTournamentIdWinnersPostData = {
+  body: TournamentWinnerBody;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/winners';
+};
+
+export type CreateWinnerTournamentsTournamentIdWinnersPostErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type CreateWinnerTournamentsTournamentIdWinnersPostError =
+  CreateWinnerTournamentsTournamentIdWinnersPostErrors[keyof CreateWinnerTournamentsTournamentIdWinnersPostErrors];
+
+export type CreateWinnerTournamentsTournamentIdWinnersPostResponses = {
+  /**
+   * Successful Response
+   */
+  200: SingleTournamentWinnerResponse;
+};
+
+export type CreateWinnerTournamentsTournamentIdWinnersPostResponse =
+  CreateWinnerTournamentsTournamentIdWinnersPostResponses[keyof CreateWinnerTournamentsTournamentIdWinnersPostResponses];
+
+export type DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteData = {
+  body?: never;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+    /**
+     * Winner Id
+     */
+    winner_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/winners/{winner_id}';
+};
+
+export type DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteError =
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors[keyof DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors];
+
+export type DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses = {
+  /**
+   * Successful Response
+   */
+  200: SuccessResponse;
+};
+
+export type DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponse =
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses[keyof DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses];
+
+export type UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutData = {
+  body: TournamentWinnerBody;
+  path: {
+    /**
+     * Tournament Id
+     */
+    tournament_id: number;
+    /**
+     * Winner Id
+     */
+    winner_id: number;
+  };
+  query?: never;
+  url: '/tournaments/{tournament_id}/winners/{winner_id}';
+};
+
+export type UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors = {
+  /**
+   * Validation Error
+   */
+  422: HttpValidationError;
+};
+
+export type UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutError =
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors[keyof UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors];
+
+export type UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses = {
+  /**
+   * Successful Response
+   */
+  200: SingleTournamentWinnerResponse;
+};
+
+export type UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponse =
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses[keyof UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses];
 
 export type GetUserUsersMeGetData = {
   body?: never;

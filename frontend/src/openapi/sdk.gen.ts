@@ -56,6 +56,9 @@ import type {
   CreateTournamentTournamentsPostData,
   CreateTournamentTournamentsPostErrors,
   CreateTournamentTournamentsPostResponses,
+  CreateWinnerTournamentsTournamentIdWinnersPostData,
+  CreateWinnerTournamentsTournamentIdWinnersPostErrors,
+  CreateWinnerTournamentsTournamentIdWinnersPostResponses,
   DeleteClubClubsClubIdDeleteData,
   DeleteClubClubsClubIdDeleteErrors,
   DeleteClubClubsClubIdDeleteResponses,
@@ -89,6 +92,9 @@ import type {
   DeleteTournamentTournamentsTournamentIdDeleteData,
   DeleteTournamentTournamentsTournamentIdDeleteErrors,
   DeleteTournamentTournamentsTournamentIdDeleteResponses,
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteData,
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors,
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses,
   GetAvailableInputsTournamentsTournamentIdAvailableInputsGetData,
   GetAvailableInputsTournamentsTournamentIdAvailableInputsGetErrors,
   GetAvailableInputsTournamentsTournamentIdAvailableInputsGetResponses,
@@ -131,6 +137,9 @@ import type {
   GetTournamentTournamentsTournamentIdGetResponses,
   GetUserUsersMeGetData,
   GetUserUsersMeGetResponses,
+  GetWinnersTournamentsTournamentIdWinnersGetData,
+  GetWinnersTournamentsTournamentIdWinnersGetErrors,
+  GetWinnersTournamentsTournamentIdWinnersGetResponses,
   LoginForAccessTokenTokenPostData,
   LoginForAccessTokenTokenPostErrors,
   LoginForAccessTokenTokenPostResponses,
@@ -205,6 +214,9 @@ import type {
   UpdateUserDetailsUsersUserIdPutData,
   UpdateUserDetailsUsersUserIdPutErrors,
   UpdateUserDetailsUsersUserIdPutResponses,
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutData,
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors,
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses,
   UploadLogoTournamentsTournamentIdLogoPostData,
   UploadLogoTournamentsTournamentIdLogoPostErrors,
   UploadLogoTournamentsTournamentIdLogoPostResponses,
@@ -1700,6 +1712,103 @@ export const createMultipleTeamsTournamentsTournamentIdTeamsMultiPost = <
     responseType: 'json',
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/tournaments/{tournament_id}/teams_multi',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Get Winners
+ */
+export const getWinnersTournamentsTournamentIdWinnersGet = <ThrowOnError extends boolean = false>(
+  options: Options<GetWinnersTournamentsTournamentIdWinnersGetData, ThrowOnError>,
+): RequestResult<
+  GetWinnersTournamentsTournamentIdWinnersGetResponses,
+  GetWinnersTournamentsTournamentIdWinnersGetErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    GetWinnersTournamentsTournamentIdWinnersGetResponses,
+    GetWinnersTournamentsTournamentIdWinnersGetErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/tournaments/{tournament_id}/winners',
+    ...options,
+  });
+
+/**
+ * Create Winner
+ */
+export const createWinnerTournamentsTournamentIdWinnersPost = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateWinnerTournamentsTournamentIdWinnersPostData, ThrowOnError>,
+): RequestResult<
+  CreateWinnerTournamentsTournamentIdWinnersPostResponses,
+  CreateWinnerTournamentsTournamentIdWinnersPostErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    CreateWinnerTournamentsTournamentIdWinnersPostResponses,
+    CreateWinnerTournamentsTournamentIdWinnersPostErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tournaments/{tournament_id}/winners',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * Delete Winner
+ */
+export const deleteWinnerTournamentsTournamentIdWinnersWinnerIdDelete = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteData, ThrowOnError>,
+): RequestResult<
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses,
+  DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteResponses,
+    DeleteWinnerTournamentsTournamentIdWinnersWinnerIdDeleteErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tournaments/{tournament_id}/winners/{winner_id}',
+    ...options,
+  });
+
+/**
+ * Update Winner
+ */
+export const updateWinnerTournamentsTournamentIdWinnersWinnerIdPut = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutData, ThrowOnError>,
+): RequestResult<
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses,
+  UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutResponses,
+    UpdateWinnerTournamentsTournamentIdWinnersWinnerIdPutErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tournaments/{tournament_id}/winners/{winner_id}',
     ...options,
     headers: {
       'Content-Type': 'application/json',

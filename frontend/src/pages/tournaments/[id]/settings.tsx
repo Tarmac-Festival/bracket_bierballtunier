@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router';
 import { SWRResponse } from 'swr';
 
 import { assert_not_none } from '@components/utils/assert';
+import { WinnersPanel } from '@components/winners/winners_panel';
 import { DropzoneButton } from '@components/utils/file_upload';
 import { GenericSkeletonThreeRows } from '@components/utils/skeletons';
 import { teamSizeRangeIsValid } from '@components/utils/tournament';
@@ -37,6 +38,7 @@ import {
   getBaseApiUrl,
   getClubs,
   getTournamentById,
+  getTournamentWinners,
   handleRequestError,
   removeTournamentLogo,
 } from '@services/adapter';
@@ -127,6 +129,7 @@ function GeneralTournamentForm({
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const swrWinnersResponse = getTournamentWinners(tournament.id);
   const form = useForm({
     initialValues: {
       start_time: dayjs(tournament.start_time),
@@ -268,6 +271,9 @@ function GeneralTournamentForm({
           autosize
           {...form.getInputProps('rules')}
         />
+      </Fieldset>
+      <Fieldset legend={t('winners_legend')} mt="lg" radius="md">
+        <WinnersPanel tournamentId={tournament.id} swrWinnersResponse={swrWinnersResponse} />
       </Fieldset>
       <Fieldset legend={t('registration_settings_legend')} mt="lg" radius="md">
         <Checkbox

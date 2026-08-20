@@ -34,6 +34,7 @@ from bracket.sql.rankings import (
     sql_delete_ranking,
 )
 from bracket.sql.tournament_events import sql_delete_events_of_tournament
+from bracket.sql.tournament_winners import sql_delete_winners_of_tournament
 from bracket.sql.tournaments import (
     sql_create_tournament,
     sql_delete_tournament,
@@ -141,8 +142,10 @@ async def delete_tournament(
     for ranking in await get_all_rankings_in_tournament(tournament_id):
         await sql_delete_ranking(tournament_id, ranking.id)
 
-    # Events belong to the tournament and to nothing else, so they go with it.
+    # Events and past winners belong to the tournament and to nothing else, so they go
+    # with it.
     await sql_delete_events_of_tournament(tournament_id)
+    await sql_delete_winners_of_tournament(tournament_id)
 
     with check_foreign_key_violation(
         {

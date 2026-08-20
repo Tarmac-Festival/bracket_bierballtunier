@@ -18,7 +18,7 @@ import PreloadLink from '@components/utils/link';
 import { registrationIsOpen } from '@components/utils/tournament';
 import { getBaseURL } from '@components/utils/util';
 import { Tournament } from '@openapi';
-import { getBaseApiUrl } from '@services/adapter';
+import { getBaseApiUrl, getTournamentWinnersLive } from '@services/adapter';
 import classes from './layout.module.css';
 
 export function TournamentQRCode({ tournamentDataFull }: { tournamentDataFull: Tournament }) {
@@ -92,6 +92,9 @@ export function TournamentTitle({ tournamentDataFull }: { tournamentDataFull: To
 export function DoubleHeader({ tournamentData }: { tournamentData: Tournament }) {
   const { t } = useTranslation();
   const navigate = useLocation();
+  // The tab only appears once there is something to look at, like the rules tab.
+  const swrWinnersResponse = getTournamentWinnersLive(tournamentData.id);
+  const hasWinners = (swrWinnersResponse.data?.data ?? []).length > 0;
   const endpoint = tournamentData.dashboard_endpoint || '';
   const pathName = navigate.pathname.replace('[id]', endpoint).replace(/\/+$/, '');
 
@@ -102,12 +105,15 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
           { link: `/tournaments/${endpoint}/dashboard/bracket`, label: t('dashboard_tab_bracket') },
           {
             link: `/tournaments/${endpoint}/dashboard/standings`,
-            label: t('dashboard_tab_standings'),
+            label: t('dashboard_tab_teams'),
           },
         ]
       : []),
     ...(tournamentData.dashboard_public && tournamentData.rules
       ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: t('dashboard_tab_rules') }]
+      : []),
+    ...(tournamentData.dashboard_public && hasWinners
+      ? [{ link: `/tournaments/${endpoint}/dashboard/winners`, label: t('dashboard_tab_winners') }]
       : []),
     ...(registrationIsOpen(tournamentData)
       ? [

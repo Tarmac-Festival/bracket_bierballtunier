@@ -85,6 +85,7 @@ async def register_team(
     contact_name: str | None = None,
     contact_phone: str | None = None,
     logo: str | None = None,
+    description: str | None = None,
 ) -> dict:
     return await send_request(
         HTTPMethod.POST,
@@ -97,6 +98,7 @@ async def register_team(
             "contact_name": contact_name,
             "contact_phone": contact_phone,
             "logo": logo,
+            "description": description,
         },
     )
 
@@ -545,3 +547,48 @@ async def test_something_that_is_not_a_picture_is_turned_away(
 
         assert response["detail"] == "The logo has to be a PNG or a JPEG"
         await assert_row_count_and_clear(teams, 0)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_a_team_can_say_a_few_words_about_itself(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    async with tournament_with_registration(auth_context) as tournament:
+        response = await register_team(
+            tournament, "Wortreich", ["Ann"], description="Seit 2019 dabei, nie gewonnen."
+        )
+
+        assert response["data"]["description"] == "Seit 2019 dabei, nie gewonnen."
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_a_visitor_is_not_shown_who_to_phone(
+    startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
+) -> None:
+    """
+    The dashboard is public, the contact person is not.
+    """
+    async with tournament_with_registration(auth_context) as tournament:
+        await register_team(
+            tournament, "Erreichbar", ["Ann"], contact_name="Peter", contact_phone="0170 1234567"
+        )
+
+        anonymous = await send_request(HTTPMethod.GET, f"tournaments/{tournament.id}/teams")
+        team = anonymous["data"]["teams"][0]
+        assert team["name"] == "Erreichbar"
+        assert team["contact_name"] is None
+        assert team["contact_phone"] is None
+
+        for_the_organiser = await send_auth_request(
+            HTTPMethod.GET, f"tournaments/{tournament.id}/teams", auth_context
+        )
+        organiser_team = for_the_organiser["data"]["teams"][0]
+        assert organiser_team["contact_name"] == "Peter"
+        assert organiser_team["contact_phone"] == "0170 1234567"
+
+        await assert_row_count_and_clear(players_x_teams, 1)
+        await assert_row_count_and_clear(players, 1)
+        await assert_row_count_and_clear(teams, 1)

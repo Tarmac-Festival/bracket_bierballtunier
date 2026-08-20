@@ -11,9 +11,10 @@ from heliclockter import datetime_utc
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.logo_upload import save_uploaded_logo
+from bracket.logic.privacy import hide_contact_details_in_teams
 from bracket.logic.ranking.statistics import START_ELO
 from bracket.logic.rate_limit import check_registration_rate_limit
-from bracket.logic.registration_logo import save_registration_logo
 from bracket.logic.subscriptions import check_requirement
 from bracket.logic.teams import get_team_logo_path
 from bracket.models.db.player import PlayerBody, PlayerToInsert
@@ -90,13 +91,14 @@ async def update_team_members(
 async def get_teams(
     tournament_id: TournamentId,
     pagination: PaginationTeams = Depends(),
-    _: UserPublic = Depends(user_authenticated_or_public_dashboard),
+    user: UserPublic | None = Depends(user_authenticated_or_public_dashboard),
 ) -> TeamsWithPlayersResponse:
+    teams_with_members = await get_teams_with_members(tournament_id, pagination=pagination)
+    if user is None:
+        teams_with_members = hide_contact_details_in_teams(teams_with_members)
+
     return TeamsWithPlayersResponse(
-        data=PaginatedTeams(
-            teams=await get_teams_with_members(tournament_id, pagination=pagination),
-            count=await get_team_count(tournament_id),
-        )
+        data=PaginatedTeams(teams=teams_with_members, count=await get_team_count(tournament_id))
     )
 
 
@@ -441,7 +443,7 @@ async def register_team(
         )
 
     try:
-        logo_path = await save_registration_logo(body.logo)
+        logo_path = await save_uploaded_logo(body.logo, "team-logos")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -455,6 +457,7 @@ async def register_team(
                 tournament_id=tournament_id,
                 contact_name=body.contact_name,
                 contact_phone=body.contact_phone,
+                description=body.description,
                 logo_path=logo_path,
             ).model_dump(),
         )

@@ -46,6 +46,7 @@ async def test_teams_endpoint(
                         "logo_path": None,
                         "contact_name": None,
                         "contact_phone": None,
+                        "description": None,
                     }
                 ],
                 "count": 1,

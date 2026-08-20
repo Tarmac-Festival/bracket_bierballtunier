@@ -9,6 +9,7 @@ from bracket.logic.scheduling.handle_stage_activation import (
     update_matches_in_activated_stage,
     update_matches_in_deactivated_stage,
 )
+from bracket.logic.privacy import hide_contact_details_in_stages
 from bracket.logic.subscriptions import check_requirement
 from bracket.models.db.stage import Stage, StageActivateBody, StageUpdateBody
 from bracket.models.db.tournament import Tournament
@@ -51,6 +52,9 @@ async def get_stages(
         )
 
     stages_ = await get_full_tournament_details(tournament_id, no_draft_rounds=no_draft_rounds)
+    if user is None:
+        stages_ = hide_contact_details_in_stages(stages_)
+
     return StagesWithStageItemsResponse(data=stages_)
 
 

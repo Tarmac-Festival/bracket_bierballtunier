@@ -30,6 +30,7 @@ from bracket.routes import (
     stages,
     teams,
     tournament_events,
+    tournament_winners,
     tournaments,
     users,
 )
@@ -77,6 +78,7 @@ routers = {
     "Stages": stages.router,
     "Teams": teams.router,
     "Tournament Events": tournament_events.router,
+    "Tournament Winners": tournament_winners.router,
     "Tournaments": tournaments.router,
     "Users": users.router,
 }

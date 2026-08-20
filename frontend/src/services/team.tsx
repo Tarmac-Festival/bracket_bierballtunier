@@ -36,6 +36,7 @@ export async function registerTeam(
   contact_name?: string,
   contact_phone?: string,
   logo?: string | null,
+  description?: string | null,
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.post(`tournaments/${tournament_id}/register`, {
@@ -46,6 +47,7 @@ export async function registerTeam(
       contact_name: contact_name || null,
       contact_phone: contact_phone || null,
       logo: logo || null,
+      description: description || null,
     }),
   );
 }
@@ -84,6 +86,7 @@ export async function updateTeam(
   player_ids: string[],
   contact_name?: string | null,
   contact_phone?: string | null,
+  description?: string | null,
 ) {
   return awaitRequestAndHandleError(async (axios) =>
     axios.put(`tournaments/${tournament_id}/teams/${team_id}`, {
@@ -92,6 +95,7 @@ export async function updateTeam(
       player_ids,
       contact_name: contact_name || null,
       contact_phone: contact_phone || null,
+      description: description || null,
     }),
   );
 }

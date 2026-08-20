@@ -29,6 +29,7 @@ import StandingsPresentPage from './pages/tournaments/[id]/dashboard/present/sta
 import DashboardRegisterPage from './pages/tournaments/[id]/dashboard/register';
 import DashboardRulesPage from './pages/tournaments/[id]/dashboard/rules';
 import DashboardStandingsPage from './pages/tournaments/[id]/dashboard/standings';
+import DashboardWinnersPage from './pages/tournaments/[id]/dashboard/winners';
 import PlayersPage from './pages/tournaments/[id]/players';
 import RankingsPage from './pages/tournaments/[id]/rankings';
 import ResultsPage from './pages/tournaments/[id]/results';
@@ -134,6 +135,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="standings" element={<DashboardStandingsPage />} />
                     <Route path="bracket" element={<DashboardBracketPage />} />
                     <Route path="rules" element={<DashboardRulesPage />} />
+                    <Route path="winners" element={<DashboardWinnersPage />} />
                     <Route path="register" element={<DashboardRegisterPage />} />
                     <Route path="present">
                       <Route path="courts" element={<CourtsPresentPage />} />

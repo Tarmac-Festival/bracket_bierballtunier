@@ -17,6 +17,7 @@ import {
   StagesWithStageItemsResponse,
   TeamsWithPlayersResponse,
   TournamentEventsResponse,
+  TournamentWinnersResponse,
   TournamentResponse,
   TournamentsResponse,
   UpcomingMatchesResponse,
@@ -232,6 +233,20 @@ export function getTournamentEventsLive(
   tournament_id: number | null,
 ): SWRResponse<TournamentEventsResponse> {
   return useSWR(tournament_id == null ? null : `tournaments/${tournament_id}/events`, fetcher, {
+    refreshInterval: 60_000,
+  });
+}
+
+export function getTournamentWinners(
+  tournament_id: number,
+): SWRResponse<TournamentWinnersResponse> {
+  return useSWR(`tournaments/${tournament_id}/winners`, fetcher);
+}
+
+export function getTournamentWinnersLive(
+  tournament_id: number | null,
+): SWRResponse<TournamentWinnersResponse> {
+  return useSWR(tournament_id == null ? null : `tournaments/${tournament_id}/winners`, fetcher, {
     refreshInterval: 60_000,
   });
 }

@@ -13,6 +13,7 @@ import {
   Stack,
   Text,
   TextInput,
+  Textarea,
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -87,6 +88,7 @@ function RegistrationForm({
       contact_name: '',
       contact_phone: '',
       logo: null as string | null,
+      description: '',
     },
     validate: {
       team_name: (value) => (value.length > 0 ? null : t('too_short_name_validation')),
@@ -128,6 +130,7 @@ function RegistrationForm({
           values.contact_name,
           values.contact_phone,
           values.logo,
+          values.description,
         );
         if (requestSucceeded(result)) {
           onSuccess(values.team_name);
@@ -255,6 +258,17 @@ function RegistrationForm({
           ) : null}
         </Stack>
       ) : null}
+
+      <Textarea
+        size="md"
+        mt="lg"
+        label={t('team_description_label')}
+        description={t('team_description_description')}
+        placeholder={t('team_description_placeholder')}
+        autosize
+        minRows={3}
+        {...form.getInputProps('description')}
+      />
 
       <FileInput
         clearable

@@ -5,8 +5,8 @@ from uuid import uuid4
 import aiofiles
 import aiofiles.os
 
-# A team logo comes in through the registration form, which is plain JSON, so the picture
-# travels as a data URL. Everything about it is checked here before anything is written.
+# Logos come in through forms that are plain JSON, so a picture travels as a data URL.
+# Everything about it is checked here before anything is written.
 MAX_LOGO_BYTES = 2 * 1024 * 1024
 
 # What the file starts with, rather than what it claims to be called.
@@ -24,10 +24,10 @@ def _decode(data_url: str) -> bytes:
         raise ValueError("The logo is not readable") from exc
 
 
-async def save_registration_logo(data_url: str | None) -> str | None:
+async def save_uploaded_logo(data_url: str | None, folder: str) -> str | None:
     """
-    Writes the logo a team sent along with its registration and returns the file name to
-    store on the team, or None when no logo was sent.
+    Writes an uploaded logo into `folder` and returns the file name to store alongside
+    whatever it belongs to, or None when no logo was sent.
     """
     if data_url is None or data_url.strip() == "":
         return None
@@ -45,8 +45,8 @@ async def save_registration_logo(data_url: str | None) -> str | None:
         raise ValueError("The logo has to be a PNG or a JPEG")
 
     filename = f"{uuid4()}{extension}"
-    await aiofiles.os.makedirs("static/team-logos", exist_ok=True)
-    async with aiofiles.open(f"static/team-logos/{filename}", "wb") as f:
+    await aiofiles.os.makedirs(f"static/{folder}", exist_ok=True)
+    async with aiofiles.open(f"static/{folder}/{filename}", "wb") as f:
         await f.write(contents)
 
     return filename

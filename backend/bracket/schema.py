@@ -170,6 +170,21 @@ teams = Table(
     # Who to call when a team is missing from the pitch.
     Column("contact_name", Text, nullable=True),
     Column("contact_phone", Text, nullable=True),
+    # A few words the team wrote about itself.
+    Column("description", Text, nullable=True),
+)
+
+# Who won in the years before this one, for the wall of fame on the dashboard.
+tournament_winners = Table(
+    "tournament_winners",
+    metadata,
+    Column("id", BigInteger, primary_key=True, index=True),
+    Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
+    Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
+    Column("year", Integer, nullable=False),
+    Column("name", Text, nullable=False),
+    Column("description", Text, nullable=True),
+    Column("logo_path", Text, nullable=True),
 )
 
 players = Table(

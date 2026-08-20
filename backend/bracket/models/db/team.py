@@ -27,6 +27,8 @@ class TeamInsertable(BaseModelORM):
     # Optional, so a team can register without one unless the tournament insists.
     contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
     contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
+    # A few words the team wrote about itself, shown on the team page.
+    description: str | None = Field(default=None, max_length=2000)
 
 
 class Team(TeamInsertable):
@@ -46,6 +48,8 @@ class TeamWithPlayers(BaseModel):
     # Optional, so a team can register without one unless the tournament insists.
     contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
     contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
+    # A few words the team wrote about itself, shown on the team page.
+    description: str | None = Field(default=None, max_length=2000)
 
     @property
     def player_ids(self) -> list[PlayerId]:
@@ -74,6 +78,8 @@ class TeamBody(BaseModelORM):
     # Optional, so a team can register without one unless the tournament insists.
     contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
     contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
+    # A few words the team wrote about itself, shown on the team page.
+    description: str | None = Field(default=None, max_length=2000)
 
 
 class TeamMultiBody(BaseModelORM):
@@ -92,6 +98,8 @@ class TeamRegistrationBody(BaseModelORM):
     # Optional, so a team can register without one unless the tournament insists.
     contact_name: Annotated[str, StringConstraints(max_length=60)] | None = None
     contact_phone: Annotated[str, StringConstraints(max_length=40)] | None = None
+    # A few words the team wrote about itself, shown on the team page.
+    description: str | None = Field(default=None, max_length=2000)
 
 
 class TeamMergeBody(BaseModelORM):
