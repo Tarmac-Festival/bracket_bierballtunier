@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Container,
+  Fieldset,
   FileInput,
   Grid,
   Group,
@@ -145,86 +146,123 @@ function RegistrationForm({
       <Title order={3} mb="md">
         {t('register_team_title')}
       </Title>
-      <TextInput
-        withAsterisk
-        size="md"
-        label={t('name_input_label')}
-        placeholder={t('team_name_input_placeholder')}
-        autoComplete="off"
-        {...form.getInputProps('team_name')}
-      />
 
-      <Text fz="sm" mt="lg">
-        {t('team_members_label')} ({minSize}
-        {minSize !== maxSize ? `-${maxSize}` : ''})
-      </Text>
-      <Stack gap="xs" mt="xs">
-        {form.values.player_names.map((_: string, index: number) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <Group key={index} wrap="nowrap">
-            <TextInput
-              style={{ flex: 1 }}
-              size="md"
-              placeholder={t('player_name_input_placeholder')}
-              autoComplete="off"
-              {...form.getInputProps(`player_names.${index}`)}
-            />
-            {form.values.player_names.length > minSize ? (
-              <ActionIcon
-                color="red"
-                variant="subtle"
-                size="lg"
-                aria-label={t('delete_button')}
-                onClick={() => removePlayer(index)}
-              >
-                <IconTrash size={20} />
-              </ActionIcon>
-            ) : null}
-          </Group>
-        ))}
-      </Stack>
-
-      {form.values.player_names.length < maxSize ? (
-        <Button
-          variant="light"
+      <Fieldset legend={t('register_section_team')} radius="md">
+        <TextInput
+          withAsterisk
           size="md"
-          mt="sm"
-          leftSection={<IconPlus size={16} />}
-          onClick={addPlayer}
-        >
-          {t('add_player_button')}
-        </Button>
-      ) : null}
+          label={t('name_input_label')}
+          placeholder={t('team_name_input_placeholder')}
+          autoComplete="off"
+          {...form.getInputProps('team_name')}
+        />
 
-      <Text fz="sm" mt="lg">
-        {t('contact_section_label')}
-      </Text>
-      <Text fz="xs" c="dimmed">
-        {contactRequired ? t('contact_required_hint') : t('contact_optional_hint')}
-      </Text>
-      <Grid mt="xs" gutter="sm">
-        <Grid.Col span={{ base: 12, xs: 6 }}>
-          <TextInput
-            withAsterisk={contactRequired}
-            size="md"
-            placeholder={t('contact_name_placeholder')}
-            autoComplete="off"
-            {...form.getInputProps('contact_name')}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 6 }}>
-          <TextInput
-            withAsterisk={contactRequired}
-            size="md"
-            placeholder={t('contact_phone_placeholder')}
-            type="tel"
-            inputMode="tel"
-            autoComplete="off"
-            {...form.getInputProps('contact_phone')}
-          />
-        </Grid.Col>
-      </Grid>
+        <Text fz="sm" mt="lg">
+          {t('team_members_label')} ({minSize}
+          {minSize !== maxSize ? `-${maxSize}` : ''})
+        </Text>
+        <Stack gap="xs" mt="xs">
+          {form.values.player_names.map((_: string, index: number) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <Group key={index} wrap="nowrap">
+              <TextInput
+                style={{ flex: 1 }}
+                size="md"
+                // Numbered, so five identical boxes do not all read the same.
+                placeholder={t('player_name_numbered_placeholder', { number: index + 1 })}
+                autoComplete="off"
+                {...form.getInputProps(`player_names.${index}`)}
+              />
+              {form.values.player_names.length > minSize ? (
+                <ActionIcon
+                  color="red"
+                  variant="subtle"
+                  size="lg"
+                  aria-label={t('delete_button')}
+                  onClick={() => removePlayer(index)}
+                >
+                  <IconTrash size={20} />
+                </ActionIcon>
+              ) : null}
+            </Group>
+          ))}
+        </Stack>
 
+        {form.values.player_names.length < maxSize ? (
+          <Button
+            variant="light"
+            size="md"
+            mt="sm"
+            leftSection={<IconPlus size={16} />}
+            onClick={addPlayer}
+          >
+            {t('add_player_button')}
+          </Button>
+        ) : null}
+      </Fieldset>
+
+      <Fieldset legend={t('register_section_presentation')} radius="md" mt="lg">
+        <FileInput
+          clearable
+          size="md"
+          accept="image/png,image/jpeg"
+          leftSection={<IconPhoto size={18} />}
+          label={t('team_logo_label')}
+          description={t('team_logo_description')}
+          placeholder={t('team_logo_placeholder')}
+          value={logoFile}
+          onChange={async (file) => {
+            setLogoFile(file);
+            // Shrunk here rather than on the server: a photo from a phone is several
+            // megabytes, and the form travels over the festival's mobile data.
+            form.setFieldValue('logo', file == null ? null : await shrinkToDataUrl(file));
+          }}
+        />
+        {form.values.logo != null ? (
+          <Image src={form.values.logo} alt="" h={80} w="auto" fit="contain" mt="xs" />
+        ) : null}
+
+        <Textarea
+          size="md"
+          mt="lg"
+          label={t('team_description_label')}
+          description={t('team_description_description')}
+          placeholder={t('team_description_placeholder')}
+          autosize
+          minRows={3}
+          {...form.getInputProps('description')}
+        />
+      </Fieldset>
+
+      <Fieldset legend={t('contact_section_label')} radius="md" mt="lg">
+        <Text fz="xs" c="dimmed">
+          {contactRequired ? t('contact_required_hint') : t('contact_optional_hint')}
+        </Text>
+        <Grid mt="xs" gutter="sm">
+          <Grid.Col span={{ base: 12, xs: 6 }}>
+            <TextInput
+              withAsterisk={contactRequired}
+              size="md"
+              placeholder={t('contact_name_placeholder')}
+              autoComplete="off"
+              {...form.getInputProps('contact_name')}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, xs: 6 }}>
+            <TextInput
+              withAsterisk={contactRequired}
+              size="md"
+              placeholder={t('contact_phone_placeholder')}
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              {...form.getInputProps('contact_phone')}
+            />
+          </Grid.Col>
+        </Grid>
+      </Fieldset>
+
+      {/* Everything that gates the submission sits directly above the button. */}
       {passwordRequired ? (
         <PasswordInput
           withAsterisk
@@ -257,38 +295,6 @@ function RegistrationForm({
             </Text>
           ) : null}
         </Stack>
-      ) : null}
-
-      <Textarea
-        size="md"
-        mt="lg"
-        label={t('team_description_label')}
-        description={t('team_description_description')}
-        placeholder={t('team_description_placeholder')}
-        autosize
-        minRows={3}
-        {...form.getInputProps('description')}
-      />
-
-      <FileInput
-        clearable
-        size="md"
-        mt="lg"
-        accept="image/png,image/jpeg"
-        leftSection={<IconPhoto size={18} />}
-        label={t('team_logo_label')}
-        description={t('team_logo_description')}
-        placeholder={t('team_logo_placeholder')}
-        value={logoFile}
-        onChange={async (file) => {
-          setLogoFile(file);
-          // Shrunk here rather than on the server: a photo from a phone is several
-          // megabytes, and the form travels over the festival's mobile data.
-          form.setFieldValue('logo', file == null ? null : await shrinkToDataUrl(file));
-        }}
-      />
-      {form.values.logo != null ? (
-        <Image src={form.values.logo} alt="" h={80} w="auto" fit="contain" mt="xs" />
       ) : null}
 
       {failure != null ? (
