@@ -1,7 +1,8 @@
-import { Table, Text } from '@mantine/core';
+import { Group, Table, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 
 import { PlayerScore } from '@components/info/player_score';
+import { TeamLogo } from '@components/info/team_logo';
 import { WinDistribution } from '@components/info/player_statistics';
 import { EmptyTableInfo } from '@components/no_content/empty_table_info';
 import { formatStageItemInput } from '@components/utils/stage_item_input';
@@ -39,9 +40,12 @@ export function StandingsTableForStageItem({
       <Table.Tr key={team_with_input.id}>
         <Table.Td style={{ width: '2rem' }}>{index + 1}</Table.Td>
         <Table.Td style={{ width: '20rem' }}>
-          <Text truncate="end" lineClamp={1} inherit>
-            {formatStageItemInput(team_with_input, stageItemsLookup)}
-          </Text>
+          <Group gap="xs" wrap="nowrap">
+            <TeamLogo team={team_with_input.team} size={fontSizeInPixels * 1.6} />
+            <Text truncate="end" lineClamp={1} inherit>
+              {formatStageItemInput(team_with_input, stageItemsLookup)}
+            </Text>
+          </Group>
         </Table.Td>
         <Table.Td visibleFrom="sm" style={{ minWidth: '8rem' }}>
           <Text truncate="end" lineClamp={1} inherit>

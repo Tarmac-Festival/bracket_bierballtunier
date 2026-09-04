@@ -5,6 +5,7 @@ import '@mantine/dropzone/styles.css';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import '@mantine/spotlight/styles.css';
+import './tarmac.css';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -21,10 +22,14 @@ import CreateDemoAccountPage from './pages/demo';
 import LoginPage from './pages/login';
 import PasswordResetPage from './pages/password_reset';
 import DashboardSchedulePage from './pages/tournaments/[id]/dashboard';
+import DashboardBracketPage from './pages/tournaments/[id]/dashboard/bracket';
 import DashboardNotFoundPage from './pages/tournaments/[id]/dashboard/dashboard_404';
 import CourtsPresentPage from './pages/tournaments/[id]/dashboard/present/courts';
 import StandingsPresentPage from './pages/tournaments/[id]/dashboard/present/standings';
+import DashboardRegisterPage from './pages/tournaments/[id]/dashboard/register';
+import DashboardRulesPage from './pages/tournaments/[id]/dashboard/rules';
 import DashboardStandingsPage from './pages/tournaments/[id]/dashboard/standings';
+import DashboardWinnersPage from './pages/tournaments/[id]/dashboard/winners';
 import PlayersPage from './pages/tournaments/[id]/players';
 import RankingsPage from './pages/tournaments/[id]/rankings';
 import ResultsPage from './pages/tournaments/[id]/results';
@@ -35,19 +40,50 @@ import SwissTournamentPage from './pages/tournaments/[id]/stages/swiss/[stage_it
 import TeamsPage from './pages/tournaments/[id]/teams';
 import UserPage from './pages/user';
 
+// Colours and typography follow tarmac-festival.de: a dark grey base, deep purple for
+// actions and a bright green as the highlight, all set in Josefin Sans.
 const theme = createTheme({
+  fontFamily: "'Josefin Sans', sans-serif",
+  headings: { fontFamily: "'Josefin Sans', sans-serif", fontWeight: '700' },
+  primaryColor: 'tarmac',
+  primaryShade: 8,
+  defaultRadius: 'md',
   colors: {
     dark: [
-      '#C1C2C5',
-      '#A6A7AB',
-      '#909296',
-      '#5c5f66',
-      '#373A40',
-      '#2C2E33',
-      '#25262b',
-      '#1A1B1E',
-      '#141517',
-      '#101113',
+      '#dee2e6',
+      '#ced4da',
+      '#adb5bd',
+      '#868e96',
+      '#495057',
+      '#343a40',
+      '#2b3035',
+      '#212529',
+      '#1a1d20',
+      '#141719',
+    ],
+    tarmac: [
+      '#f4eefa',
+      '#e3d6ee',
+      '#c7abdd',
+      '#aa7dcc',
+      '#9257bd',
+      '#8f6da9',
+      '#7b3ea6',
+      '#622b8a',
+      '#450b6f',
+      '#330754',
+    ],
+    tarmacGreen: [
+      '#eeffe6',
+      '#dbffcc',
+      '#b8ff9b',
+      '#93ff66',
+      '#74ff40',
+      '#5ee62c',
+      '#4fc924',
+      '#3fa01c',
+      '#2f7714',
+      '#1f4f0d',
     ],
   },
 });
@@ -70,9 +106,9 @@ createRoot(document.getElementById('root')!).render(
     <NuqsAdapter>
       <BrowserRouter>
         <I18nextProvider i18n={i18n}>
-          <MantineProvider defaultColorScheme="auto" theme={theme}>
+          <MantineProvider defaultColorScheme="dark" theme={theme}>
             <BracketSpotlight />
-            <Notifications />
+            <Notifications maw="calc(100vw - 1rem)" />
             <Routes>
               <Route index element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -97,6 +133,10 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="dashboard">
                     <Route index element={<DashboardSchedulePage />} />
                     <Route path="standings" element={<DashboardStandingsPage />} />
+                    <Route path="bracket" element={<DashboardBracketPage />} />
+                    <Route path="rules" element={<DashboardRulesPage />} />
+                    <Route path="winners" element={<DashboardWinnersPage />} />
+                    <Route path="register" element={<DashboardRegisterPage />} />
                     <Route path="present">
                       <Route path="courts" element={<CourtsPresentPage />} />
                       <Route path="standings" element={<StandingsPresentPage />} />

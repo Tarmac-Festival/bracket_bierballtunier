@@ -1,5 +1,5 @@
 from bracket.database import database
-from bracket.models.db.round import RoundInsertable
+from bracket.models.db.round import Round, RoundInsertable
 from bracket.models.db.util import RoundWithMatches
 from bracket.sql.stage_items import get_stage_item
 from bracket.sql.stages import get_full_tournament_details
@@ -101,4 +101,25 @@ async def set_round_active_or_draft(
             "round_id": round_id,
             "is_draft": is_draft,
         },
+    )
+
+
+async def sql_unschedule_matches_from_round_onwards(round_: Round) -> None:
+    """
+    Clears the planning of a round and every round after it in the same stage item, so they
+    can be planned again around a changed start time.
+    """
+    query = """
+        UPDATE matches
+        SET start_time = NULL, position_in_schedule = NULL, court_id = NULL
+        WHERE matches.round_id IN (
+            SELECT rounds.id
+            FROM rounds
+            WHERE rounds.stage_item_id = :stage_item_id
+            AND rounds.id >= :round_id
+        )
+    """
+    await database.execute(
+        query=query,
+        values={"stage_item_id": round_.stage_item_id, "round_id": round_.id},
     )

@@ -23,7 +23,7 @@ export default function ActivateNextRoundModal({
   tournamentId: number;
   stageItem: StageItemWithRounds;
   swrStagesResponse: SWRResponse<StagesWithStageItemsResponse>;
-  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse>;
+  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse> | null;
 }) {
   const { t } = useTranslation();
   const [opened, setOpened] = useState(false);
@@ -50,7 +50,7 @@ export default function ActivateNextRoundModal({
               values.adjust_to_time ? dayjs() : null,
             );
             await swrStagesResponse.mutate();
-            await swrUpcomingMatchesResponse.mutate();
+            await swrUpcomingMatchesResponse?.mutate();
             setOpened(false);
           })}
         >

@@ -45,7 +45,7 @@ function AddRoundButton({
   tournamentData: TournamentMinimal;
   stageItem: StageItemWithRounds;
   swrStagesResponse: SWRResponse<StagesWithStageItemsResponse>;
-  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse>;
+  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse> | null;
   size: 'md' | 'lg';
 }) {
   return (
@@ -57,7 +57,7 @@ function AddRoundButton({
       onClick={async () => {
         await createRound(tournamentData.id, stageItem.id);
         await swrStagesResponse.mutate();
-        await swrUpcomingMatchesResponse.mutate();
+        await swrUpcomingMatchesResponse?.mutate();
       }}
     >
       {t('add_round_button')}
@@ -76,7 +76,8 @@ export function RoundsGridCols({
   stageItem: StageItemWithRounds;
   tournamentData: Tournament;
   swrStagesResponse: SWRResponse<StagesWithStageItemsResponse>;
-  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse>;
+  // Only needed to refresh the planning UI, so read-only views can leave it out.
+  swrUpcomingMatchesResponse: SWRResponse<UpcomingMatchesResponse> | null;
   readOnly: boolean;
   displaySettings: BracketDisplaySettings;
 }) {
@@ -138,6 +139,16 @@ export function RoundsGridCols({
   }
 
   const hideAddRoundButton = tournamentData == null || readOnly;
+
+  // The toolbar only holds controls for editing the schedule, so a read-only view like the
+  // public dashboard shows the rounds on their own.
+  if (readOnly) {
+    return (
+      <React.Fragment key={stageItem.id}>
+        <Group align="top">{result}</Group>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment key={stageItem.id}>

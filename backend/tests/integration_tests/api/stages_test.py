@@ -76,6 +76,7 @@ async def test_stages_endpoint(
                                     "created": DUMMY_MOCK_TIME.isoformat().replace("+00:00", "Z"),
                                     "is_draft": False,
                                     "name": "Round 1",
+                                    "start_time": None,
                                     "matches": [],
                                 }
                             ],

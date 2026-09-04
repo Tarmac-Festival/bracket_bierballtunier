@@ -13,7 +13,10 @@ export function getTournamentResponseByEndpointName(): Tournament | React.ReactE
 
   if (swrTournamentsResponse.isLoading) return <TableSkeletonTwoColumns />;
   if (swrTournamentsResponse.error) {
-    if (swrTournamentsResponse.error.response.status == 404) return <DashboardNotFoundTitle />;
+    // A 401 here means the tournament is neither publicly visible nor open for
+    // registration, which is a "nothing to see here" case, not a server error.
+    const status = swrTournamentsResponse.error.response?.status;
+    if (status === 404 || status === 401) return <DashboardNotFoundTitle />;
     return <GenericErrorPage />;
   }
 

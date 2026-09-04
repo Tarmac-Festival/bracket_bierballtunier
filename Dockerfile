@@ -7,8 +7,13 @@ ENV NODE_ENV=production
 
 COPY frontend .
 
+# The API lives behind /api on whatever host serves the page, so the address stays
+# relative by default: baked in as localhost it only ever worked on the machine running
+# it. The ARG leaves the door open for a build that needs a different address.
+# Through npm, not `apk add pnpm`: that pulls a second Node in next to the one this
+# image already ships, and installing it fails on the image's own /usr/bin.
 ARG VITE_API_BASE_URL=/api
-RUN apk add pnpm && \
+RUN npm install -g pnpm@11 && \
     CI=true pnpm install && \
     VITE_API_BASE_URL=$VITE_API_BASE_URL pnpm build
 

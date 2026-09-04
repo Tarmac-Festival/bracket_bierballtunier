@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Center,
   Container,
@@ -8,13 +9,16 @@ import {
   Title,
   UnstyledButton,
 } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import QRCode from 'react-qr-code';
 import { useLocation } from 'react-router';
 
 import PreloadLink from '@components/utils/link';
+import { registrationIsOpen } from '@components/utils/tournament';
 import { getBaseURL } from '@components/utils/util';
 import { Tournament } from '@openapi';
-import { getBaseApiUrl } from '@services/adapter';
+import { getBaseApiUrl, getTournamentWinnersLive } from '@services/adapter';
 import classes from './layout.module.css';
 
 export function TournamentQRCode({ tournamentDataFull }: { tournamentDataFull: Tournament }) {
@@ -62,8 +66,19 @@ export function TournamentLogo({ tournamentDataFull }: { tournamentDataFull: Tou
   ) : null;
 }
 
+export function DashboardNotPublic() {
+  const { t } = useTranslation();
+  return (
+    <Container mt="1rem" px="sm">
+      <Alert icon={<IconAlertCircle size={16} />} color="gray" radius="md">
+        {t('dashboard_not_public_message')}
+      </Alert>
+    </Container>
+  );
+}
+
 export function getTournamentHeadTitle(tournamentDataFull: Tournament) {
-  return tournamentDataFull !== null ? `Bracket | ${tournamentDataFull.name}` : 'Bracket';
+  return tournamentDataFull !== null ? tournamentDataFull.name : 'Tarmac Bierballturnier';
 }
 
 export function TournamentTitle({ tournamentDataFull }: { tournamentDataFull: Tournament }) {
@@ -75,13 +90,39 @@ export function TournamentTitle({ tournamentDataFull }: { tournamentDataFull: To
 }
 
 export function DoubleHeader({ tournamentData }: { tournamentData: Tournament }) {
+  const { t } = useTranslation();
   const navigate = useLocation();
+  // The tab only appears once there is something to look at, like the rules tab.
+  const swrWinnersResponse = getTournamentWinnersLive(tournamentData.id);
+  const hasWinners = (swrWinnersResponse.data?.data ?? []).length > 0;
   const endpoint = tournamentData.dashboard_endpoint || '';
   const pathName = navigate.pathname.replace('[id]', endpoint).replace(/\/+$/, '');
 
   const mainLinks = [
-    { link: `/tournaments/${endpoint}/dashboard`, label: 'Matches' },
-    { link: `/tournaments/${endpoint}/dashboard/standings`, label: 'Standings' },
+    ...(tournamentData.dashboard_public
+      ? [
+          { link: `/tournaments/${endpoint}/dashboard`, label: t('dashboard_tab_matches') },
+          { link: `/tournaments/${endpoint}/dashboard/bracket`, label: t('dashboard_tab_bracket') },
+          {
+            link: `/tournaments/${endpoint}/dashboard/standings`,
+            label: t('dashboard_tab_teams'),
+          },
+        ]
+      : []),
+    ...(tournamentData.dashboard_public && tournamentData.rules
+      ? [{ link: `/tournaments/${endpoint}/dashboard/rules`, label: t('dashboard_tab_rules') }]
+      : []),
+    ...(tournamentData.dashboard_public && hasWinners
+      ? [{ link: `/tournaments/${endpoint}/dashboard/winners`, label: t('dashboard_tab_winners') }]
+      : []),
+    ...(registrationIsOpen(tournamentData)
+      ? [
+          {
+            link: `/tournaments/${endpoint}/dashboard/register`,
+            label: t('dashboard_tab_register'),
+          },
+        ]
+      : []),
   ];
 
   const mainItems = mainLinks.map((item) => (
@@ -97,11 +138,26 @@ export function DoubleHeader({ tournamentData }: { tournamentData: Tournament })
 
   return (
     <header className={classes.header}>
-      <Container className={classes.inner}>
-        <UnstyledButton component={PreloadLink} href={`/tournaments/${endpoint}/dashboard`}>
-          <Title size="lg" lineClamp={1}>
-            {tournamentData.name}
-          </Title>
+      <div className={classes.stripe} />
+      <Container size="xl" className={`${classes.inner} ${classes.titleBar}`}>
+        <UnstyledButton
+          component={PreloadLink}
+          href={`/tournaments/${endpoint}/dashboard`}
+          className={classes.titleButton}
+        >
+          <Group gap="sm" wrap="nowrap">
+            {tournamentData.logo_path ? (
+              <Image
+                src={`${getBaseApiUrl()}/static/tournament-logos/${tournamentData.logo_path}`}
+                alt=""
+                fit="contain"
+                className={classes.tournamentLogo}
+              />
+            ) : null}
+            <Title lineClamp={1} className={classes.tournamentTitle}>
+              {tournamentData.name}
+            </Title>
+          </Group>
         </UnstyledButton>
         <Box className={classes.links}>
           <Group gap={0} className={classes.mainLinks}>

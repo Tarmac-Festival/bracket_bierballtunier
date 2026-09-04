@@ -3,6 +3,7 @@ from starlette import status
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.planning.matches import schedule_all_unscheduled_matches
 from bracket.logic.ranking.calculation import (
     recalculate_ranking_for_stage_item,
 )
@@ -29,6 +30,7 @@ from bracket.sql.rounds import (
     set_round_active_or_draft,
     sql_create_round,
     sql_delete_round,
+    sql_unschedule_matches_from_round_onwards,
 )
 from bracket.sql.stage_items import get_stage_item
 from bracket.sql.stages import get_full_tournament_details
@@ -102,12 +104,13 @@ async def update_round_by_id(
     round_id: RoundId,
     round_body: RoundUpdateBody,
     _: UserPublic = Depends(user_authenticated_for_tournament),
-    __: Round = Depends(round_dependency),
+    round_: Round = Depends(round_dependency),
     ___: Tournament = Depends(disallow_archived_tournament),
 ) -> SuccessResponse:
+    start_time_changed = round_.start_time != round_body.start_time
     query = """
         UPDATE rounds
-        SET name = :name, is_draft = :is_draft
+        SET name = :name, is_draft = :is_draft, start_time = :start_time
         WHERE rounds.id IN (
             SELECT rounds.id
             FROM rounds
@@ -124,6 +127,17 @@ async def update_round_by_id(
             "round_id": round_id,
             "name": round_body.name,
             "is_draft": round_body.is_draft,
+            "start_time": round_body.start_time,
         },
     )
+
+    # Scheduling only fills in matches that have no time yet, so a new start time would
+    # otherwise have no effect on a round that was already planned. Drop the times of this
+    # round and the ones after it, then let them be planned again.
+    if start_time_changed:
+        await sql_unschedule_matches_from_round_onwards(round_)
+        await schedule_all_unscheduled_matches(
+            tournament_id, await get_full_tournament_details(tournament_id)
+        )
+
     return SuccessResponse()

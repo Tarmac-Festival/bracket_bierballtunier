@@ -8,6 +8,7 @@ from starlette import status
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.logo_upload import remove_uploaded_logo
 from bracket.logic.planning.matches import update_start_times_of_matches
 from bracket.logic.subscriptions import check_requirement
 from bracket.logic.tournaments import get_tournament_logo_path
@@ -33,11 +34,17 @@ from bracket.sql.rankings import (
     sql_create_ranking,
     sql_delete_ranking,
 )
+from bracket.sql.tournament_events import sql_delete_events_of_tournament
+from bracket.sql.tournament_winners import (
+    sql_delete_winners_of_tournament,
+    sql_get_winners_of_tournament,
+)
 from bracket.sql.tournaments import (
     sql_create_tournament,
     sql_delete_tournament,
     sql_get_tournament,
     sql_get_tournament_by_endpoint_name,
+    sql_get_tournament_dependency_counts,
     sql_get_tournaments,
     sql_update_tournament,
     sql_update_tournament_status,
@@ -103,9 +110,17 @@ async def get_tournaments(
 async def update_tournament_by_id(
     tournament_id: TournamentId,
     tournament_body: TournamentUpdateBody,
-    _: UserPublic = Depends(user_authenticated_for_tournament),
+    user: UserPublic = Depends(user_authenticated_for_tournament),
     __: Tournament = Depends(disallow_archived_tournament),
 ) -> SuccessResponse:
+    # The tournament can be moved to another club, which must be one the user is part of.
+    if not await get_user_access_to_club(tournament_body.club_id, user.id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Club ID is invalid",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     with check_unique_constraint_violation({UniqueIndex.ix_tournaments_dashboard_endpoint}):
         await sql_update_tournament(tournament_id, tournament_body)
 
@@ -117,8 +132,27 @@ async def update_tournament_by_id(
 async def delete_tournament(
     tournament_id: TournamentId, _: UserPublic = Depends(user_authenticated_for_tournament)
 ) -> SuccessResponse:
+    # Rankings are deleted first, but they are still referenced by stage items, so without
+    # this check a tournament that isn't empty yet fails with a foreign key violation
+    # instead of telling the user what to remove first.
+    counts = await sql_get_tournament_dependency_counts(tournament_id)
+    blockers = [f"{count} {name}" for name, count in counts.items() if count > 0]
+    if blockers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This tournament still has {', '.join(blockers)}. Delete those first.",
+        )
+
     for ranking in await get_all_rankings_in_tournament(tournament_id):
         await sql_delete_ranking(tournament_id, ranking.id)
+
+    # Events and past winners belong to the tournament and to nothing else, so they go
+    # with it, pictures included.
+    await sql_delete_events_of_tournament(tournament_id)
+    for winner in await sql_get_winners_of_tournament(tournament_id):
+        await remove_uploaded_logo(winner.logo_path, "winner-logos")
+        await remove_uploaded_logo(winner.easter_egg_image_path, "easter-egg-images")
+    await sql_delete_winners_of_tournament(tournament_id)
 
     with check_foreign_key_violation(
         {

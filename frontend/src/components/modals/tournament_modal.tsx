@@ -6,6 +6,7 @@ import {
   Modal,
   NumberInput,
   Select,
+  Textarea,
   TextInput,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
@@ -18,6 +19,7 @@ import { SWRResponse } from 'swr';
 
 import SaveButton from '@components/buttons/save';
 import { assert_not_none } from '@components/utils/assert';
+import { teamSizeRangeIsValid } from '@components/utils/tournament';
 import { Club, Tournament, TournamentsResponse } from '@openapi';
 import { getBaseApiUrl, getClubs } from '@services/adapter';
 import { createTournament } from '@services/tournament';
@@ -51,6 +53,14 @@ function GeneralTournamentForm({
       club_id: null,
       dashboard_public: true,
       dashboard_endpoint: '',
+      rules: '',
+      registration_enabled: false,
+      registration_info: '',
+      registration_password: '',
+      registration_deadline: null,
+      team_size_min: 1,
+      team_size_max: 8,
+      max_teams: null,
       players_can_be_in_multiple_teams: false,
       auto_assign_courts: true,
       duration_minutes: 10,
@@ -65,6 +75,10 @@ function GeneralTournamentForm({
         value != null && value > 0 ? null : t('duration_minutes_choose_title'),
       margin_minutes: (value) =>
         value != null && value > 0 ? null : t('margin_minutes_choose_title'),
+      team_size_min: (value, values) =>
+        teamSizeRangeIsValid(value, values.team_size_max) ? null : t('team_size_min_validation'),
+      team_size_max: (value, values) =>
+        teamSizeRangeIsValid(values.team_size_min, value) ? null : t('team_size_max_validation'),
     },
   });
 
@@ -81,6 +95,15 @@ function GeneralTournamentForm({
           values.start_time,
           values.duration_minutes,
           values.margin_minutes,
+          values.rules,
+          values.registration_enabled,
+          values.registration_info,
+          values.registration_password,
+          false,
+          values.registration_deadline,
+          values.team_size_min,
+          values.team_size_max,
+          values.max_teams,
         );
         await swrTournamentsResponse.mutate();
         setOpened(false);
@@ -148,6 +171,74 @@ function GeneralTournamentForm({
           />
         </Grid.Col>
       </Grid>
+
+      <Textarea
+        label={t('tournament_rules_label')}
+        placeholder={t('tournament_rules_placeholder')}
+        mt="lg"
+        minRows={4}
+        autosize
+        {...form.getInputProps('rules')}
+      />
+
+      <Checkbox
+        mt="md"
+        label={t('registration_enabled_description')}
+        {...form.getInputProps('registration_enabled', { type: 'checkbox' })}
+      />
+
+      {form.values.registration_enabled ? (
+        <>
+          <Textarea
+            label={t('registration_info_label')}
+            placeholder={t('registration_info_placeholder')}
+            mt="md"
+            minRows={3}
+            autosize
+            {...form.getInputProps('registration_info')}
+          />
+          <TextInput
+            label={t('registration_password_label')}
+            placeholder={t('registration_password_placeholder')}
+            mt="md"
+            {...form.getInputProps('registration_password')}
+          />
+          <DateTimePicker
+            clearable
+            label={t('registration_deadline_label')}
+            placeholder={t('registration_deadline_placeholder')}
+            mt="md"
+            {...form.getInputProps('registration_deadline')}
+          />
+          <Grid>
+            <Grid.Col span={{ sm: 4 }}>
+              <NumberInput
+                label={t('team_size_min_label')}
+                min={1}
+                mt="md"
+                {...form.getInputProps('team_size_min')}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 4 }}>
+              <NumberInput
+                label={t('team_size_max_label')}
+                min={1}
+                mt="md"
+                {...form.getInputProps('team_size_max')}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 4 }}>
+              <NumberInput
+                label={t('max_teams_label')}
+                placeholder={t('max_teams_placeholder')}
+                min={1}
+                mt="md"
+                {...form.getInputProps('max_teams')}
+              />
+            </Grid.Col>
+          </Grid>
+        </>
+      ) : null}
 
       <Checkbox
         mt="md"

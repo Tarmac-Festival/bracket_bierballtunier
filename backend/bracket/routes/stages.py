@@ -3,6 +3,7 @@ from starlette import status
 
 from bracket.config import config
 from bracket.database import database
+from bracket.logic.privacy import hide_contact_details_in_stages
 from bracket.logic.scheduling.builder import determine_available_inputs
 from bracket.logic.scheduling.handle_stage_activation import (
     get_updates_to_inputs_in_activated_stage,
@@ -51,6 +52,9 @@ async def get_stages(
         )
 
     stages_ = await get_full_tournament_details(tournament_id, no_draft_rounds=no_draft_rounds)
+    if user is None:
+        stages_ = hide_contact_details_in_stages(stages_)
+
     return StagesWithStageItemsResponse(data=stages_)
 
 

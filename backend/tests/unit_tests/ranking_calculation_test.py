@@ -119,6 +119,95 @@ def test_determine_ranking_for_stage_item_elimination() -> None:
     }
 
 
+def test_determine_ranking_ignores_matches_that_have_not_been_played() -> None:
+    """
+    Matches sit at 0-0 until a result is entered, which used to be counted as a draw and
+    handed both teams points for a match that was still ahead of them.
+    """
+    tournament_id = TournamentId(-1)
+    now = datetime_utc.now()
+    stage_item_input1 = StageItemInputFinal(
+        id=StageItemInputId(-1),
+        team_id=TeamId(-1),
+        slot=1,
+        tournament_id=tournament_id,
+        team=Team(**DUMMY_TEAM1.model_dump(), id=TeamId(-1)),
+    )
+    stage_item_input2 = StageItemInputFinal(
+        id=StageItemInputId(-2),
+        team_id=TeamId(-2),
+        slot=1,
+        tournament_id=tournament_id,
+        team=Team(**DUMMY_TEAM2.model_dump(), id=TeamId(-2)),
+    )
+
+    ranking = determine_ranking_for_stage_item(
+        StageItemWithRounds(
+            rounds=[
+                RoundWithMatches(
+                    id=RoundId(-1),
+                    matches=[
+                        MatchWithDetailsDefinitive(
+                            id=MatchId(-1),
+                            stage_item_input1=stage_item_input1,
+                            stage_item_input2=stage_item_input2,
+                            created=now,
+                            duration_minutes=90,
+                            margin_minutes=15,
+                            round_id=RoundId(-1),
+                            stage_item_input1_score=1,
+                            stage_item_input2_score=0,
+                            stage_item_input1_conflict=False,
+                            stage_item_input2_conflict=False,
+                        ),
+                        MatchWithDetailsDefinitive(  # Not played yet
+                            id=MatchId(-2),
+                            stage_item_input1=stage_item_input1,
+                            stage_item_input2=stage_item_input2,
+                            created=now,
+                            duration_minutes=90,
+                            margin_minutes=15,
+                            round_id=RoundId(-1),
+                            stage_item_input1_score=0,
+                            stage_item_input2_score=0,
+                            stage_item_input1_conflict=False,
+                            stage_item_input2_conflict=False,
+                        ),
+                    ],
+                    stage_item_id=StageItemId(-1),
+                    created=now,
+                    is_draft=False,
+                    name="",
+                )
+            ],
+            inputs=[stage_item_input1, stage_item_input2],
+            type_name="Single Elimination",
+            team_count=2,
+            ranking_id=None,
+            id=StageItemId(-1),
+            stage_id=StageId(-1),
+            name="",
+            created=now,
+            type=StageType.SINGLE_ELIMINATION,
+        ),
+        Ranking(
+            id=RankingId(-1),
+            tournament_id=tournament_id,
+            created=now,
+            win_points=Decimal("1.0"),
+            draw_points=Decimal("0.5"),
+            loss_points=Decimal("0.0"),
+            add_score_points=False,
+            position=0,
+        ),
+    )
+
+    assert ranking == {
+        -1: TeamStatistics(wins=1, draws=0, losses=0, points=Decimal("1.0")),
+        -2: TeamStatistics(wins=0, draws=0, losses=1, points=Decimal("0.0")),
+    }
+
+
 def test_determine_ranking_for_stage_item_swiss() -> None:
     tournament_id = TournamentId(-1)
     now = datetime_utc.now()

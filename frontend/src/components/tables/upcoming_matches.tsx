@@ -119,7 +119,13 @@ export default function UpcomingMatchesTable({
             miw="20rem"
             leftSection={<GoChecklist size={20} />}
             onClick={async () => {
-              await updateRound(tournamentData.id, draftRound.id, draftRound.name, false);
+              await updateRound(
+                tournamentData.id,
+                draftRound.id,
+                draftRound.name,
+                false,
+                draftRound.start_time,
+              );
               await swrStagesResponse.mutate();
               await swrUpcomingMatchesResponse.mutate();
             }}

@@ -13,11 +13,16 @@ services:
       - postgres
     environment:
       ENVIRONMENT: DEVELOPMENT
+      # Taken from .env, which stays out of git. Without it Bracket falls back to the key
+      # printed in its public repository, and anyone who knows it can sign themselves an
+      # admin token for this instance.
+      JWT_SECRET: ${JWT_SECRET:?Bitte JWT_SECRET in .env setzen - siehe .env.example}
       CORS_ORIGINS: http://localhost:8400
       PG_DSN: postgresql://bracket_dev:bracket_dev@postgres:5432/bracket_dev
       SERVE_FRONTEND: true
       API_PREFIX: '/api'
-    image: ghcr.io/evroon/bracket
+    build: .
+    image: bracket-bierball-local
     networks:
       - bracket_lan
     ports:

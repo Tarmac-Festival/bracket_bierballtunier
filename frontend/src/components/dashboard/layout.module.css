@@ -1,37 +1,64 @@
 .header {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   width: 100%;
   background-color: var(--mantine-color-body);
   border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
+/* Festival stripe across the top of every dashboard page. */
+.stripe {
+  height: rem(6px);
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--tarmac-purple) 0%,
+    var(--tarmac-purple-light) 45%,
+    var(--tarmac-green) 100%
+  );
+}
+
+.titleBar {
+  padding-top: rem(18px);
+  padding-bottom: rem(6px);
+}
+
 .inner {
-  @media (min-width: 25rem) {
-    display: flex;
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: rem(8px) rem(16px);
   margin: auto;
   height: 100%;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Let the title give way to the navigation before it gets clipped. */
+.titleButton {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Gives way and wraps onto a second row rather than forcing the page wider than the
+   phone it is being read on. */
 .links {
-  min-width: 11rem;
-  flex-direction: column;
-  justify-content: space-between;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .mainLinks {
+  flex-wrap: wrap;
+  justify-content: flex-end;
   margin-right: calc(var(--mantine-spacing-sm) * -1);
 }
 
 .mainLink {
   text-transform: uppercase;
-  font-size: var(--mantine-font-size-xs);
+  font-size: var(--mantine-font-size-sm);
+  letter-spacing: rem(1px);
   color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
-  padding: rem(7px) var(--mantine-spacing-sm);
-  font-weight: 700;
+  padding: rem(7px) var(--mantine-spacing-xs);
+  white-space: nowrap;
+  font-weight: 400;
   border-bottom: rem(2px) solid transparent;
   text-decoration: none;
   transition:
@@ -45,6 +72,40 @@
 
   &[data-active] {
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-    border-bottom-color: var(--mantine-color-blue-6);
+    border-bottom-color: var(--tarmac-green);
   }
+}
+
+/* Grows with the title beside it, and never so tall that it pushes the bar open. No frame
+   around it: a logo with a transparent background should sit in the bar, not on it. */
+.tournamentLogo {
+  height: clamp(rem(40px), 5vw, rem(64px));
+  width: auto;
+  max-width: rem(160px);
+  flex: 0 0 auto;
+  border-radius: rem(8px);
+}
+
+.tournamentTitle {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: rem(1px);
+  /* Shrinks with the viewport so long tournament names stay on one line. */
+  font-size: clamp(rem(18px), 2.4vw, rem(30px));
+  line-height: 1.15;
+  /* The gradient has to start from whatever the header is not: on a light header a white
+     first half of the name is simply not there.
+
+     background-image, never the `background` shorthand: light-dark() is compiled into a
+     second, more specific rule per colour scheme, and the shorthand there would reset
+     background-clip to border-box — painting the gradient over the whole box instead of
+     through the letters. */
+  background-image: linear-gradient(
+    90deg,
+    light-dark(var(--mantine-color-dark-9), var(--mantine-color-white)) 30%,
+    light-dark(var(--tarmac-purple), var(--tarmac-green)) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }

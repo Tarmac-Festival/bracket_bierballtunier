@@ -1,9 +1,11 @@
-import { Badge, Center, Pagination, Table } from '@mantine/core';
+import { Anchor, Badge, Center, Pagination, Table } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { SWRResponse } from 'swr';
 
 import DeleteButton from '@components/buttons/delete';
 import PlayerList from '@components/info/player_list';
+import TeamMergeModal from '@components/modals/team_merge_modal';
+import TeamSplitModal from '@components/modals/team_split_modal';
 import TeamUpdateModal from '@components/modals/team_update_modal';
 import { NoContent } from '@components/no_content/empty_table_info';
 import { DateTime } from '@components/utils/datetime';
@@ -52,12 +54,34 @@ export default function TeamsTable({
           <PlayerList team={team} />
         </Table.Td>
         <Table.Td>
+          {team.contact_name || team.contact_phone ? (
+            <>
+              <div>{team.contact_name}</div>
+              <Anchor href={`tel:${team.contact_phone}`} fz="sm">
+                {team.contact_phone}
+              </Anchor>
+            </>
+          ) : null}
+        </Table.Td>
+        <Table.Td>
           <DateTime datetime={team.created} />
         </Table.Td>
         <Table.Td>
           <TeamUpdateModal
             tournament_id={tournamentData.id}
             team={team}
+            swrTeamsResponse={swrTeamsResponse}
+          />
+          <TeamMergeModal
+            tournament_id={tournamentData.id}
+            team={team}
+            otherTeams={teams.filter((t2) => t2.id !== team.id)}
+            swrTeamsResponse={swrTeamsResponse}
+          />
+          <TeamSplitModal
+            tournament_id={tournamentData.id}
+            team={team}
+            otherTeams={teams.filter((t2) => t2.id !== team.id)}
             swrTeamsResponse={swrTeamsResponse}
           />
           <DeleteButton
@@ -75,7 +99,7 @@ export default function TeamsTable({
 
   return (
     <>
-      <TableLayout miw={850}>
+      <TableLayout miw={1000}>
         <Table.Thead>
           <Table.Tr>
             <ThSortable state={tableState} field="active">
@@ -85,6 +109,7 @@ export default function TeamsTable({
               {t('name_table_header')}
             </ThSortable>
             <ThNotSortable>{t('members_table_header')}</ThNotSortable>
+            <ThNotSortable>{t('contact_table_header')}</ThNotSortable>
             <ThSortable state={tableState} field="created">
               {t('created')}
             </ThSortable>

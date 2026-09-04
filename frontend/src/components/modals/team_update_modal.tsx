@@ -7,6 +7,7 @@ import {
   Modal,
   MultiSelect,
   TextInput,
+  Textarea,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { BiEditAlt } from '@react-icons/all-files/bi/BiEditAlt';
@@ -49,6 +50,9 @@ export default function TeamUpdateModal({
       name: team.name,
       active: team.active,
       player_ids: team.players.map((player) => `${player.id}`),
+      description: team.description ?? '',
+      contact_name: team.contact_name ?? '',
+      contact_phone: team.contact_phone ?? '',
     },
 
     validate: {
@@ -67,6 +71,9 @@ export default function TeamUpdateModal({
               values.name,
               values.active,
               values.player_ids,
+              values.contact_name,
+              values.contact_phone,
+              values.description,
             );
             if (requestSucceeded(result)) {
               await swrTeamsResponse.mutate();
@@ -96,6 +103,28 @@ export default function TeamUpdateModal({
             mt={12}
             limit={25}
             {...form.getInputProps('player_ids')}
+          />
+
+          <Textarea
+            label={t('team_description_label')}
+            placeholder={t('team_description_placeholder')}
+            autosize
+            minRows={3}
+            mt={12}
+            {...form.getInputProps('description')}
+          />
+
+          <TextInput
+            label={t('contact_name_label')}
+            placeholder={t('contact_name_placeholder')}
+            mt={12}
+            {...form.getInputProps('contact_name')}
+          />
+          <TextInput
+            label={t('contact_phone_label')}
+            placeholder={t('contact_phone_placeholder')}
+            mt={12}
+            {...form.getInputProps('contact_phone')}
           />
 
           <Fieldset legend={t('logo_settings_title')} mt={12} radius="md">

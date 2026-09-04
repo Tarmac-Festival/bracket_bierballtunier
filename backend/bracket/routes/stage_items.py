@@ -21,6 +21,7 @@ from bracket.logic.scheduling.builder import (
 from bracket.logic.scheduling.upcoming_matches import get_upcoming_matches_for_swiss
 from bracket.logic.subscriptions import check_requirement
 from bracket.models.db.match import MatchCreateBody, MatchFilter, SuggestedMatch
+from bracket.models.db.ranking import RankingCreateBody
 from bracket.models.db.round import RoundInsertable
 from bracket.models.db.stage_item import (
     StageItemActivateNextBody,
@@ -41,6 +42,7 @@ from bracket.sql.matches import (
     sql_create_match,
     sql_reschedule_match_and_determine_duration_and_margin,
 )
+from bracket.sql.rankings import get_all_rankings_in_tournament, sql_create_ranking
 from bracket.sql.rounds import (
     get_next_round_name,
     get_round_by_id,
@@ -92,6 +94,12 @@ async def create_stage_item(
     stages = await get_full_tournament_details(tournament_id)
     existing_stage_items = [stage_item for stage in stages for stage_item in stage.stage_items]
     check_requirement(existing_stage_items, user, "max_stage_items")
+
+    # A tournament is created with a default ranking, but it could have been removed since
+    # (a failed tournament deletion used to do exactly that). Every stage item needs one, so
+    # restore it instead of failing with an error the organizer can't make sense of.
+    if not await get_all_rankings_in_tournament(tournament_id):
+        await sql_create_ranking(tournament_id, RankingCreateBody(), position=0)
 
     stage_item = await sql_create_stage_item_with_empty_inputs(tournament_id, stage_body)
     await build_matches_for_stage_item(stage_item, tournament_id)

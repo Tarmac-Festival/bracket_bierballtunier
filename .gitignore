@@ -17,3 +17,6 @@ backend/static
 backend/frontend-dist
 
 /process-compose.yml
+
+# Local database and upload backups
+backups/

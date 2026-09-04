@@ -118,6 +118,11 @@ async def update_team_stats(
     )
 
 
+async def sql_get_stage_item_input_count_of_team(team_id: TeamId) -> int:
+    query = "SELECT count(*) FROM stage_item_inputs WHERE team_id = :team_id"
+    return int(await database.fetch_val(query=query, values={"team_id": team_id}))
+
+
 async def sql_delete_team(tournament_id: TournamentId, team_id: TeamId) -> None:
     query = "DELETE FROM teams WHERE id = :team_id AND tournament_id = :tournament_id"
     await database.fetch_one(

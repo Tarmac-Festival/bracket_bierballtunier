@@ -42,6 +42,16 @@ async def test_tournaments_endpoint(
                 "duration_minutes": 10,
                 "margin_minutes": 5,
                 "status": "OPEN",
+                "rules": None,
+                "registration_enabled": False,
+                "registration_info": None,
+                "registration_terms": None,
+                "registration_contact_required": False,
+                "registration_password_required": False,
+                "registration_deadline": None,
+                "team_size_min": 1,
+                "team_size_max": 8,
+                "max_teams": None,
             }
         ],
     }
@@ -68,6 +78,16 @@ async def test_tournament_endpoint(
             "duration_minutes": 10,
             "margin_minutes": 5,
             "status": "OPEN",
+            "rules": None,
+            "registration_enabled": False,
+            "registration_info": None,
+            "registration_terms": None,
+            "registration_contact_required": False,
+            "registration_password_required": False,
+            "registration_deadline": None,
+            "team_size_min": 1,
+            "team_size_max": 8,
+            "max_teams": None,
         },
     }
 
@@ -124,6 +144,7 @@ async def test_update_tournament(
 ) -> None:
     body = {
         "name": "Some new name",
+        "club_id": auth_context.club.id,
         "start_time": DUMMY_MOCK_TIME.isoformat().replace("+00:00", "Z"),
         "dashboard_public": False,
         "players_can_be_in_multiple_teams": True,

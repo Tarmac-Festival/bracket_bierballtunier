@@ -25,6 +25,16 @@ tournaments = Table(
     Column("dashboard_public", Boolean, nullable=False),
     Column("logo_path", String, nullable=True),
     Column("dashboard_endpoint", String, nullable=True, index=True, unique=True),
+    Column("rules", Text, nullable=True),
+    Column("registration_enabled", Boolean, nullable=False, server_default="f"),
+    Column("registration_info", Text, nullable=True),
+    Column("registration_terms", Text, nullable=True),
+    Column("registration_contact_required", Boolean, nullable=False, server_default="false"),
+    Column("registration_password", String, nullable=True),
+    Column("registration_deadline", DateTimeTZ, nullable=True),
+    Column("team_size_min", Integer, nullable=False, server_default="1"),
+    Column("team_size_max", Integer, nullable=False, server_default="8"),
+    Column("max_teams", Integer, nullable=True),
     Column("players_can_be_in_multiple_teams", Boolean, nullable=False, server_default="f"),
     Column("auto_assign_courts", Boolean, nullable=False, server_default="f"),
     Column("duration_minutes", Integer, nullable=False, server_default="15"),
@@ -105,6 +115,8 @@ rounds = Table(
     Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
     Column("is_draft", Boolean, nullable=False),
     Column("stage_item_id", BigInteger, ForeignKey("stage_items.id"), nullable=False),
+    # Earliest kick-off for this round, used to spread a tournament over several days.
+    Column("start_time", DateTimeTZ, nullable=True),
 )
 
 
@@ -155,6 +167,27 @@ teams = Table(
     Column("draws", Integer, nullable=False, server_default="0"),
     Column("losses", Integer, nullable=False, server_default="0"),
     Column("logo_path", String, nullable=True),
+    # Who to call when a team is missing from the pitch.
+    Column("contact_name", Text, nullable=True),
+    Column("contact_phone", Text, nullable=True),
+    # A few words the team wrote about itself.
+    Column("description", Text, nullable=True),
+)
+
+# Who won in the years before this one, for the wall of fame on the dashboard.
+tournament_winners = Table(
+    "tournament_winners",
+    metadata,
+    Column("id", BigInteger, primary_key=True, index=True),
+    Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
+    Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
+    Column("year", Integer, nullable=False),
+    Column("name", Text, nullable=False),
+    Column("description", Text, nullable=True),
+    Column("logo_path", Text, nullable=True),
+    # Three clicks on this winner's logo open a small adventure. Off unless armed.
+    Column("easter_egg", Boolean, nullable=False, server_default="false"),
+    Column("easter_egg_image_path", Text, nullable=True),
 )
 
 players = Table(
@@ -224,6 +257,43 @@ courts = Table(
     Column("name", Text, nullable=False),
     Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
     Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
+)
+
+tournament_events = Table(
+    "tournament_events",
+    metadata,
+    Column("id", BigInteger, primary_key=True, index=True),
+    Column("name", Text, nullable=False),
+    Column("description", Text, nullable=True),
+    Column("created", DateTimeTZ, nullable=False, server_default=func.now()),
+    Column("tournament_id", BigInteger, ForeignKey("tournaments.id"), nullable=False, index=True),
+    # Anything that takes time next to the matches: a halftime show, an award ceremony.
+    Column("start_time", DateTimeTZ, nullable=False),
+    Column("duration_minutes", Integer, nullable=False),
+    # Whether the matches have to make room for it.
+    Column("blocks_matches", Boolean, nullable=False, server_default="true"),
+    Column("location", Text, nullable=True),
+    # An event can hang off the schedule instead of having a fixed time: it then starts
+    # when the round or the match it follows is over. Cleared when that one is deleted.
+    Column(
+        "after_round_id",
+        BigInteger,
+        ForeignKey("rounds.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    Column(
+        "after_match_id",
+        BigInteger,
+        ForeignKey("matches.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    # The other way round: the event ends when this round starts.
+    Column(
+        "before_round_id",
+        BigInteger,
+        ForeignKey("rounds.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
 )
 
 rankings = Table(
