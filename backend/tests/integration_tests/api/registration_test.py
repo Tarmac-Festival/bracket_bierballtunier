@@ -24,6 +24,7 @@ from bracket.schema import (
 )
 from bracket.utils.dummy_records import DUMMY_MOCK_TIME, DUMMY_TOURNAMENT
 from bracket.utils.http import HTTPMethod
+from bracket.utils.types import JsonDict
 from tests.integration_tests.api.shared import send_auth_request, send_request
 from tests.integration_tests.models import AuthContext
 from tests.integration_tests.sql import (
@@ -86,7 +87,7 @@ async def register_team(
     contact_phone: str | None = None,
     logo: str | None = None,
     description: str | None = None,
-) -> dict:
+) -> JsonDict:
     return await send_request(
         HTTPMethod.POST,
         f"tournaments/{tournament.id}/register",
@@ -105,7 +106,7 @@ async def register_team(
 
 async def merge_team(
     tournament: Tournament, auth_context: AuthContext, team_id: int, target_team_id: int
-) -> dict:
+) -> JsonDict:
     return await send_auth_request(
         HTTPMethod.POST,
         f"tournaments/{tournament.id}/teams/{team_id}/merge",
