@@ -3301,12 +3301,12 @@
           "name",
           "description",
           "location",
-          "start_time",
           "duration_minutes",
           "blocks_matches",
           "after_round_id",
           "after_match_id",
           "before_round_id",
+          "start_time",
           "created",
           "tournament_id",
           "id"
@@ -3408,12 +3408,12 @@
           "name",
           "description",
           "location",
-          "start_time",
           "duration_minutes",
           "blocks_matches",
           "after_round_id",
           "after_match_id",
-          "before_round_id"
+          "before_round_id",
+          "start_time"
         ],
         "title": "TournamentEventBody",
         "type": "object"

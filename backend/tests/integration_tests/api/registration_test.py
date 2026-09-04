@@ -25,7 +25,11 @@ from bracket.schema import (
 from bracket.utils.dummy_records import DUMMY_MOCK_TIME, DUMMY_TOURNAMENT
 from bracket.utils.http import HTTPMethod
 from bracket.utils.types import JsonDict
-from tests.integration_tests.api.shared import send_auth_request, send_request
+from tests.integration_tests.api.shared import (
+    TINY_PNG_BASE64,
+    send_auth_request,
+    send_request,
+)
 from tests.integration_tests.models import AuthContext
 from tests.integration_tests.sql import (
     assert_row_count_and_clear,
@@ -428,7 +432,9 @@ async def test_merge_team_into_itself_is_rejected(
 async def test_registration_requires_every_confirmation_to_be_ticked(
     startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
 ) -> None:
-    terms = """Ich habe das Regelwerk gelesen
+    # Spelled out as str: without it the literal is inferred as a literal type and the
+    # list of lines that comes out of it no longer counts as a list of plain strings.
+    terms: str = """Ich habe das Regelwerk gelesen
 Ich bin mit Fotos einverstanden"""
 
     async with tournament_with_registration(auth_context, terms=terms) as tournament:
@@ -511,21 +517,13 @@ async def test_the_contact_person_can_be_demanded(
         await assert_row_count_and_clear(teams, 1)
 
 
-# The smallest possible PNG, so the test does not need a fixture on disk.
-TINY_PNG = base64.b64encode(
-    base64.b64decode(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-    )
-).decode()
-
-
 @pytest.mark.asyncio(loop_scope="session")
 async def test_a_team_can_bring_its_own_logo_along(
     startup_and_shutdown_uvicorn_server: None, auth_context: AuthContext
 ) -> None:
     async with tournament_with_registration(auth_context) as tournament:
         response = await register_team(
-            tournament, "Mit Logo", ["Ann"], logo=f"data:image/png;base64,{TINY_PNG}"
+            tournament, "Mit Logo", ["Ann"], logo=f"data:image/png;base64,{TINY_PNG_BASE64}"
         )
 
         logo_path = response["data"]["logo_path"]

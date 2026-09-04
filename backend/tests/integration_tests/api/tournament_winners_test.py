@@ -4,11 +4,12 @@ import aiofiles.os
 import pytest
 
 from bracket.utils.http import HTTPMethod
-from tests.integration_tests.api.shared import send_auth_request, send_tournament_request
+from tests.integration_tests.api.shared import (
+    TINY_PNG_BASE64,
+    send_auth_request,
+    send_tournament_request,
+)
 from tests.integration_tests.models import AuthContext
-
-# The smallest possible PNG, so the test needs no fixture on disk.
-TINY_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -52,7 +53,7 @@ async def test_a_winner_keeps_its_picture_when_only_the_text_is_edited(
             "year": 2025,
             "name": "Die Alten Hasen",
             "description": "Ungeschlagen durch alle Runden",
-            "logo": f"data:image/png;base64,{TINY_PNG}",
+            "logo": f"data:image/png;base64,{TINY_PNG_BASE64}",
         },
     )
     winner_id = created["data"]["id"]

@@ -5,19 +5,18 @@ from bracket.models.db.shared import BaseModelORM
 from bracket.utils.id_types import MatchId, RoundId, TournamentEventId, TournamentId
 
 
-class TournamentEventBody(BaseModelORM):
+class TournamentEventCommon(BaseModelORM):
     """
     Something that happens next to the matches and takes up time: a halftime show, an award
     ceremony, a break.
 
-    When it follows a round or a single match, its start time is not entered but derived
-    from the schedule, so it keeps up when the matches move.
+    Everything about such an event except when it starts - that is the one thing the two
+    sides disagree about, so each says it for itself below.
     """
 
     name: str = Field(min_length=1, max_length=100)
     description: str | None = None
     location: str | None = Field(default=None, max_length=200)
-    start_time: datetime_utc | None = None
     duration_minutes: int = Field(default=30, ge=1, le=24 * 60)
     blocks_matches: bool = True
     after_round_id: RoundId | None = None
@@ -33,8 +32,20 @@ class TournamentEventBody(BaseModelORM):
         )
 
 
-class TournamentEventInsertable(TournamentEventBody):
-    # Always filled in: for an anchored event it is derived from the schedule.
+class TournamentEventBody(TournamentEventCommon):
+    """
+    Something that happens next to the matches and takes up time: a halftime show, an award
+    ceremony, a break.
+
+    When it follows a round or a single match, its start time is not entered but derived
+    from the schedule, so it keeps up when the matches move.
+    """
+
+    start_time: datetime_utc | None = None
+
+
+class TournamentEventInsertable(TournamentEventCommon):
+    # Always filled in: for an anchored event it has been derived by the time it is stored.
     start_time: datetime_utc
     created: datetime_utc
     tournament_id: TournamentId

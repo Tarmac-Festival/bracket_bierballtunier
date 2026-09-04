@@ -14,6 +14,7 @@ from bracket.models.db.tournament_event import (
     TournamentEventInsertable,
 )
 from bracket.models.db.user import UserPublic
+from bracket.models.db.util import StageWithStageItems
 from bracket.routes.auth import (
     user_authenticated_for_tournament,
     user_authenticated_or_public_dashboard,
@@ -78,34 +79,53 @@ async def _start_time_of(
     stages = await get_full_tournament_details(tournament_id, no_draft_rounds=False)
 
     if event_body.before_round_id is not None:
-        round_ = next(
-            (
-                round_
-                for stage in stages
-                for stage_item in stage.stage_items
-                for round_ in stage_item.rounds
-                if round_.id == event_body.before_round_id
-            ),
-            None,
-        )
-        if round_ is None:
-            raise _unknown_anchor()
+        return _ends_when_round_starts(event_body, stages, tournament_start)
 
-        match_starts = [
-            match.start_time for match in round_.matches if match.start_time is not None
-        ]
-        round_start = round_.start_time
-        if match_starts:
-            earliest = min(match_starts)
-            round_start = earliest if round_start is None else max(round_start, earliest)
+    return _starts_when_anchor_is_over(event_body, stages, tournament_start)
 
-        if round_start is None:
-            return tournament_start
 
-        return datetime_utc.from_datetime(
-            round_start - timedelta(minutes=event_body.duration_minutes)
-        )
+def _ends_when_round_starts(
+    event_body: TournamentEventBody,
+    stages: list[StageWithStageItems],
+    tournament_start: datetime_utc,
+) -> datetime_utc:
+    """
+    The event is meant to be over by the time the round begins, so it starts its own
+    duration before that.
+    """
+    round_ = next(
+        (
+            round_
+            for stage in stages
+            for stage_item in stage.stage_items
+            for round_ in stage_item.rounds
+            if round_.id == event_body.before_round_id
+        ),
+        None,
+    )
+    if round_ is None:
+        raise _unknown_anchor()
 
+    match_starts = [match.start_time for match in round_.matches if match.start_time is not None]
+    round_start = round_.start_time
+    if match_starts:
+        earliest = min(match_starts)
+        round_start = earliest if round_start is None else max(round_start, earliest)
+
+    if round_start is None:
+        return tournament_start
+
+    return datetime_utc.from_datetime(round_start - timedelta(minutes=event_body.duration_minutes))
+
+
+def _starts_when_anchor_is_over(
+    event_body: TournamentEventBody,
+    stages: list[StageWithStageItems],
+    tournament_start: datetime_utc,
+) -> datetime_utc:
+    """
+    The event follows a match, or the last match of a round, so it starts when that is over.
+    """
     end_time: datetime_utc | None = None
     found = False
 
@@ -163,7 +183,8 @@ async def create_event(
     last_record_id = await database.execute(
         query=tournament_events.insert(),
         values=TournamentEventInsertable(
-            **{**event_body.model_dump(), "start_time": start_time},
+            **event_body.model_dump(exclude={"start_time"}),
+            start_time=start_time,
             created=datetime_utc.now(),
             tournament_id=tournament_id,
         ).model_dump(),

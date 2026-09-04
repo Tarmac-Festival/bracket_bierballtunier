@@ -66,6 +66,13 @@ class UvicornTestServer(uvicorn.Server):
         await self._serve_task
 
 
+# The smallest possible PNG, so a test that needs a picture needs no fixture on disk.
+TINY_PNG_BASE64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhK"
+    "mMIQAAAABJRU5ErkJggg=="
+)
+
+
 async def send_request(
     method: HTTPMethod,
     endpoint: str,

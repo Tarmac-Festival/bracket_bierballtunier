@@ -361,16 +361,16 @@ async def create_multiple_teams(
         for row in reader
         if len(row) > 0
     ]
-    players = [player for row in teams_and_players for player in row[1]]
+    imported_players = [player for row in teams_and_players for player in row[1]]
 
     existing_teams = await get_teams_with_members(tournament_id)
     existing_players = await get_all_players_in_tournament(tournament_id)
 
     check_requirement(existing_teams, user, "max_teams", additions=len(reader))
-    check_requirement(existing_players, user, "max_players", additions=len(players))
+    check_requirement(existing_players, user, "max_players", additions=len(imported_players))
 
     async with database.transaction():
-        for team_name, players in teams_and_players:
+        for team_name, team_players in teams_and_players:
             await database.execute(
                 query=teams.insert(),
                 values=TeamInsertable(
@@ -380,7 +380,7 @@ async def create_multiple_teams(
                     tournament_id=tournament_id,
                 ).model_dump(),
             )
-            for player in players:
+            for player in team_players:
                 player_body = PlayerBody(name=player, active=team_body.active)
                 await insert_player(player_body, tournament_id)
 
@@ -437,7 +437,7 @@ async def register_team(
         )
 
     team_size = len(body.player_names)
-    if not (tournament.team_size_min <= team_size <= tournament.team_size_max):
+    if team_size < tournament.team_size_min or team_size > tournament.team_size_max:
         raise HTTPException(
             status_code=400,
             detail=f"A team must have between {tournament.team_size_min} and "

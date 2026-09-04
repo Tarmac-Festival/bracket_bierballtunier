@@ -109,10 +109,12 @@ async def schedule_all_unscheduled_matches(
                 next_round_can_start_from = round_can_start_from
 
                 for match in round_.matches:
-                    court_id = min(
-                        court_available_from,
-                        key=lambda id_: max(court_available_from[id_], round_can_start_from),
-                    )
+                    # When each court is free again, but never before the round may start.
+                    free_from = {
+                        court: max(available, round_can_start_from)
+                        for court, available in court_available_from.items()
+                    }
+                    court_id = min(free_from.items(), key=lambda pair: pair[1])[0]
                     start_time = start_after_blocked_periods(
                         max(court_available_from[court_id], round_can_start_from),
                         match.duration_minutes,
